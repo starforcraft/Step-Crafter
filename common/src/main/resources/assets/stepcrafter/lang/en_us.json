@@ -1,0 +1,20 @@
+{
+  "mod.stepcrafter": "Step Crafter",
+  "block.stepcrafter.step_crafter": "Step Crafter",
+  "block.stepcrafter.step_requester": "Step Requester",
+  "item.stepcrafter.slot_upgrade": "Slot Upgrade",
+  "item.stepcrafter.step_crafter.help": "Accepts patterns for recursive autocrafting and allows setting minimum and maximum thresholds. When the output of a configured pattern falls below the minimum in the network, it will automatically craft items up to the maximum.",
+  "item.stepcrafter.step_requester.help": "When a configured resource drops below its configurable minimum, it requests autocrafters to produce it in the configurable batch size until the configurable maximum is reached.",
+  "gui.stepcrafter.grid.stock": "Stock",
+  "gui.stepcrafter.step_crafter.filter_help": "The pattern that should be recursively followed to keep them in stock",
+  "gui.stepcrafter.step_requester.filter_help": "The resources that should be requested to Autocrafters to keep them in stock",
+  "gui.stepcrafter.resource_configuration.minimum": "Min:",
+  "gui.stepcrafter.resource_configuration.maximum": "Max:",
+  "gui.stepcrafter.resource_configuration.batch_size": "Batch Size:",
+  "gui.stepcrafter.filter_slot.shift_click_to_configure_amount": "Shift Click to configure amount",
+  "tooltip.stepcrafter.grid.maintaining": "Maintaining %s-%s",
+  "tooltip.stepcrafter.grid.maintaining_single": "Maintaining %s",
+  "tooltip.stepcrafter.resource_configuration.minimum_amount": "Minimum Amount: %s",
+  "tooltip.stepcrafter.resource_configuration.maximum_amount": "Maximum Amount: %s",
+  "tooltip.stepcrafter.resource_configuration.batch_size": "Batch Size: %s"
+}

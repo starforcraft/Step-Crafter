@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "stepcrafter:block/step_requester/inactive"
+    },
+    "active=true": {
+      "model": "stepcrafter:block/step_requester/active"
+    }
+  }
+}

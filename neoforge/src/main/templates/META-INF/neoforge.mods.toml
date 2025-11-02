@@ -1,0 +1,21 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+issueTrackerURL = "https://github.com/starforcraft/Step-Crafter/issues"
+license = "MIT"
+[[mods]]
+modId = "stepcrafter"
+version = "${version}"
+displayName = "Step Crafter"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/step-crafter"
+logoFile="logo.png"
+authors = "Ultramega"
+description = "Step Crafter is an addon for Refined Storage."
+
+[[mixins]]
+config="stepcrafter.mixins.json"
+
+[[dependencies.stepcrafter]]
+modId = "refinedstorage"
+type = "required"
+versionRange = "2.0.0"
+side = "BOTH"
