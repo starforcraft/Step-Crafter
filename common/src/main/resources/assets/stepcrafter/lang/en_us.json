@@ -16,5 +16,13 @@
   "tooltip.stepcrafter.grid.maintaining_single": "Maintaining %s",
   "tooltip.stepcrafter.resource_configuration.minimum_amount": "Minimum Amount: %s",
   "tooltip.stepcrafter.resource_configuration.maximum_amount": "Maximum Amount: %s",
-  "tooltip.stepcrafter.resource_configuration.batch_size": "Batch Size: %s"
+  "tooltip.stepcrafter.resource_configuration.batch_size": "Batch Size: %s",
+  "text.autoconfig.stepcrafter.option.stepCrafter.energyUsage": "Energy usage",
+  "text.autoconfig.stepcrafter.option.stepCrafter.energyUsage.tooltip": "The energy used by the Step Crafter.",
+  "text.autoconfig.stepcrafter.option.stepCrafter.speedMultiplier": "Speed Multiplier",
+  "text.autoconfig.stepcrafter.option.stepCrafter.speedMultiplier.tooltip": "The speed multiplier per slot upgrade by the Step Crafter. Formula: <SpeedUpgradeAmount> * <SpeedMultiplier> + 1",
+  "text.autoconfig.stepcrafter.option.stepRequester.energyUsage": "Energy usage",
+  "text.autoconfig.stepcrafter.option.stepRequester.energyUsage.tooltip": "The energy used by the Step Requester.",
+  "text.autoconfig.stepcrafter.option.slotUpgrade.energyUsage": "Energy usage",
+  "text.autoconfig.stepcrafter.option.slotUpgrade.energyUsage.tooltip": "The energy used by the Slot Upgrade."
 }

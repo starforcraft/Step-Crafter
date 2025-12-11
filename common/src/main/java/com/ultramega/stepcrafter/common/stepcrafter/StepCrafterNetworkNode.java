@@ -15,7 +15,9 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCrafterProvider {
@@ -76,14 +78,12 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
     }
 
     private boolean craftOneItemNew(final StorageNetworkComponent storageComponent, final Pattern pattern) {
-        // Check if all ingredients can be extracted
-        for (final Ingredient ingredient : pattern.layout().ingredients()) {
-            if (ingredient.amount() != 1) {
-                return false; // Processing patterns aren't allowed
-            }
+        final List<Ingredient> uniqueIngredients = mergeIngredients(pattern.layout().ingredients());
 
+        // Check if all ingredients can be extracted
+        for (final Ingredient ingredient : uniqueIngredients) {
             for (final ResourceKey resource : ingredient.inputs()) {
-                if (storageComponent.extract(resource, 1, Action.SIMULATE, this.actor) != 1) {
+                if (storageComponent.extract(resource, ingredient.amount(), Action.SIMULATE, this.actor) != ingredient.amount()) {
                     return false;
                 }
             }
@@ -104,9 +104,9 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
         }
 
         // Success, execute operation
-        for (final Ingredient ingredient : pattern.layout().ingredients()) {
+        for (final Ingredient ingredient : uniqueIngredients) {
             for (final ResourceKey resource : ingredient.inputs()) {
-                storageComponent.extract(resource, 1, Action.EXECUTE, this.actor);
+                storageComponent.extract(resource, ingredient.amount(), Action.EXECUTE, this.actor);
             }
         }
         for (final ResourceAmount resource : pattern.layout().outputs()) {
@@ -117,6 +117,17 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
         }
 
         return true;
+    }
+
+    private static List<Ingredient> mergeIngredients(final List<Ingredient> ingredients) {
+        return ingredients.stream()
+            .collect(Collectors.groupingBy(
+                Ingredient::inputs,
+                Collectors.summingLong(Ingredient::amount)
+            ))
+            .entrySet().stream()
+            .map(e -> new Ingredient(e.getValue(), e.getKey()))
+            .toList();
     }
 
     public void setBlockEntity(final StepCrafterBlockEntity blockEntity) {

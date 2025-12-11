@@ -87,7 +87,7 @@ public abstract class AbstractModInitializer {
     protected final void registerUpgradeMappings() {
         RefinedStorageApi.INSTANCE.getUpgradeRegistry().forDestination(UpgradeDestinations.STEP_CRAFTER)
             .add(Items.INSTANCE.getSlotUpgrade(), 4)
-            .add(com.refinedmods.refinedstorage.common.content.Items.INSTANCE.getSpeedUpgrade(), 4);
+            .add(com.refinedmods.refinedstorage.common.content.Items.INSTANCE.getSpeedUpgrade(), 5);
         RefinedStorageApi.INSTANCE.getUpgradeRegistry().forDestination(UpgradeDestinations.STEP_REQUESTER)
             .add(Items.INSTANCE.getSlotUpgrade(), 4)
             .add(com.refinedmods.refinedstorage.common.content.Items.INSTANCE.getSpeedUpgrade(), 4);
