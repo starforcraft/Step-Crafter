@@ -14,6 +14,10 @@ repositories {
         name = "JEI"
         url = uri("https://maven.blamejared.com/")
     }
+    maven {
+        name = "EMI"
+        url = uri("https://maven.terraformersmc.com/")
+    }
 }
 
 val modVersion: String by project
@@ -32,7 +36,9 @@ base {
 }
 
 val refinedstorageVersion: String by project
+val refinedstorageQuartzArsenalVersion: String by project
 val jeiVersion: String by project
+val emiVersion: String by project
 val minecraftVersion: String by project
 
 val commonJava by configurations.existing
@@ -43,8 +49,11 @@ dependencies {
     commonJava(project(path = ":common", configuration = "commonJava"))
     commonResources(project(path = ":common", configuration = "commonResources"))
     api("com.refinedmods.refinedstorage:refinedstorage-neoforge:${refinedstorageVersion}")
+    api("com.refinedmods.refinedstorage:refinedstorage-quartz-arsenal-neoforge:${refinedstorageQuartzArsenalVersion}")
 
     runtimeOnly("mezz.jei:jei-${minecraftVersion}-neoforge:${jeiVersion}")
     compileOnlyApi("mezz.jei:jei-${minecraftVersion}-common-api:${jeiVersion}")
     compileOnlyApi("mezz.jei:jei-${minecraftVersion}-neoforge-api:${jeiVersion}")
+//    runtimeOnly("dev.emi:emi-neoforge:${emiVersion}")
+    compileOnlyApi("dev.emi:emi-neoforge:${emiVersion}")
 }

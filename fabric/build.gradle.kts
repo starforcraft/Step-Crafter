@@ -40,7 +40,9 @@ base {
 }
 
 val refinedstorageVersion: String by project
+val refinedstorageQuartzArsenalVersion: String by project
 val jeiVersion: String by project
+val emiVersion: String by project
 val minecraftVersion: String by project
 
 val commonJava by configurations.existing
@@ -51,9 +53,12 @@ dependencies {
     commonJava(project(path = ":common", configuration = "commonJava"))
     commonResources(project(path = ":common", configuration = "commonResources"))
     modApi("com.refinedmods.refinedstorage:refinedstorage-fabric:${refinedstorageVersion}")
+    modApi("com.refinedmods.refinedstorage:refinedstorage-quartz-arsenal-fabric:${refinedstorageQuartzArsenalVersion}")
 
     modRuntimeOnly("mezz.jei:jei-${minecraftVersion}-fabric:${jeiVersion}")
     modCompileOnlyApi("mezz.jei:jei-${minecraftVersion}-common-api:${jeiVersion}")
     modCompileOnlyApi("mezz.jei:jei-${minecraftVersion}-common:${jeiVersion}")
     modCompileOnlyApi("mezz.jei:jei-${minecraftVersion}-fabric-api:${jeiVersion}")
+//    modRuntimeOnly("dev.emi:emi-fabric:${emiVersion}")
+    modCompileOnlyApi("dev.emi:emi-fabric:${emiVersion}")
 }
