@@ -3,7 +3,7 @@ package com.ultramega.stepcrafter.common.steprequester;
 import com.ultramega.stepcrafter.common.UpgradeDestinations;
 import com.ultramega.stepcrafter.common.registry.Items;
 import com.ultramega.stepcrafter.common.registry.Menus;
-import com.ultramega.stepcrafter.common.support.AbstractPatternResourceContainerMenu;
+import com.ultramega.stepcrafter.common.support.AbstractEditableNameContainerMenu;
 import com.ultramega.stepcrafter.common.support.FilterTransfer;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;
@@ -25,7 +25,7 @@ import net.minecraft.world.level.Level;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 import static com.ultramega.stepcrafter.common.steprequester.StepRequesterBlockEntity.UPGRADES;
 
-public class StepRequesterContainerMenu extends AbstractPatternResourceContainerMenu {
+public class StepRequesterContainerMenu extends AbstractEditableNameContainerMenu {
     private static final int FILTER_SLOT_X = 8;
     private static final int FILTER_SLOT_Y = 20;
 
@@ -35,8 +35,9 @@ public class StepRequesterContainerMenu extends AbstractPatternResourceContainer
     private int amountSlotUpgrades = 0;
 
     public StepRequesterContainerMenu(final int syncId, final Inventory playerInventory, final StepRequesterData data) {
-        super(Menus.INSTANCE.getStepRequester(), syncId, playerInventory.player);
+        super(Menus.INSTANCE.getStepRequester(), syncId, playerInventory.player, null);
         this.registerProperty(new ClientProperty<>(PropertyTypes.REDSTONE_MODE, RedstoneMode.IGNORE));
+        this.registerProperty(new ClientProperty<>(StepRequesterPropertyTypes.VISIBLE_TO_THE_STEP_REQUESTER_MANAGER, true));
         this.addSlots(
             StepRequesterBlockEntity.createFilterContainer(data, playerInventory.player::level, this::getAmountSlotUpgrades),
             new UpgradeContainer(UPGRADES, UpgradeDestinations.STEP_REQUESTER, (c, upgradeEnergyUsage) -> {
@@ -49,12 +50,17 @@ public class StepRequesterContainerMenu extends AbstractPatternResourceContainer
     public StepRequesterContainerMenu(final int syncId,
                                       final Inventory playerInventory,
                                       final StepRequesterBlockEntity stepRequester) {
-        super(Menus.INSTANCE.getStepRequester(), syncId, playerInventory.player);
+        super(Menus.INSTANCE.getStepRequester(), syncId, playerInventory.player, stepRequester);
         this.stepRequester = stepRequester;
         this.registerProperty(new ServerProperty<>(
             PropertyTypes.REDSTONE_MODE,
             stepRequester::getRedstoneMode,
             stepRequester::setRedstoneMode
+        ));
+        this.registerProperty(new ServerProperty<>(
+            StepRequesterPropertyTypes.VISIBLE_TO_THE_STEP_REQUESTER_MANAGER,
+            stepRequester::isVisibleToTheStepRequesterManager,
+            stepRequester::setVisibleToTheStepRequesterManager
         ));
         this.addSlots(stepRequester.getFilterContainer(), stepRequester.getUpgradeContainer());
     }

@@ -1,15 +1,12 @@
 package com.ultramega.stepcrafter.common.stepcrafter;
 
 import com.ultramega.stepcrafter.common.UpgradeDestinations;
-import com.ultramega.stepcrafter.common.packet.c2s.StepCrafterNameChangePacket;
-import com.ultramega.stepcrafter.common.packet.s2c.StepCrafterNameUpdatePacket;
 import com.ultramega.stepcrafter.common.registry.Items;
 import com.ultramega.stepcrafter.common.registry.Menus;
-import com.ultramega.stepcrafter.common.support.AbstractPatternResourceContainerMenu;
+import com.ultramega.stepcrafter.common.support.AbstractEditableNameContainerMenu;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;
 
-import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.support.RedstoneMode;
 import com.refinedmods.refinedstorage.common.support.containermenu.ClientProperty;
 import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes;
@@ -18,9 +15,7 @@ import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
 
 import javax.annotation.Nullable;
 
-import com.google.common.util.concurrent.RateLimiter;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -31,23 +26,19 @@ import net.minecraft.world.level.Level;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 import static com.ultramega.stepcrafter.common.stepcrafter.StepCrafterBlockEntity.UPGRADES;
 
-public class StepCrafterContainerMenu extends AbstractPatternResourceContainerMenu {
+public class StepCrafterContainerMenu extends AbstractEditableNameContainerMenu {
     private static final int PATTERN_SLOT_X = 8;
     private static final int PATTERN_SLOT_Y = 20;
 
-    private final RateLimiter nameRateLimiter = RateLimiter.create(0.5);
-
     @Nullable
     private StepCrafterBlockEntity stepCrafter;
-    @Nullable
-    private Listener listener;
-    private Component name;
 
     private int amountSlotUpgrades = 0;
 
     public StepCrafterContainerMenu(final int syncId, final Inventory playerInventory, final StepCrafterData data) {
-        super(Menus.INSTANCE.getStepCrafter(), syncId, playerInventory.player);
+        super(Menus.INSTANCE.getStepCrafter(), syncId, playerInventory.player, null);
         this.registerProperty(new ClientProperty<>(PropertyTypes.REDSTONE_MODE, RedstoneMode.IGNORE));
+        this.registerProperty(new ClientProperty<>(StepCrafterPropertyTypes.VISIBLE_TO_THE_STEP_CRAFTER_MANAGER, true));
         this.addSlots(
             StepCrafterBlockEntity.createPatternResourcesContainer(data, playerInventory.player::level, this::getAmountSlotUpgrades),
             new UpgradeContainer(UPGRADES, UpgradeDestinations.STEP_CRAFTER, (c, upgradeEnergyUsage) -> {
@@ -61,7 +52,7 @@ public class StepCrafterContainerMenu extends AbstractPatternResourceContainerMe
     public StepCrafterContainerMenu(final int syncId,
                                     final Inventory playerInventory,
                                     final StepCrafterBlockEntity stepCrafter) {
-        super(Menus.INSTANCE.getStepCrafter(), syncId, playerInventory.player);
+        super(Menus.INSTANCE.getStepCrafter(), syncId, playerInventory.player, stepCrafter);
         this.stepCrafter = stepCrafter;
         this.name = stepCrafter.getDisplayName();
         this.registerProperty(new ServerProperty<>(
@@ -69,22 +60,12 @@ public class StepCrafterContainerMenu extends AbstractPatternResourceContainerMe
             stepCrafter::getRedstoneMode,
             stepCrafter::setRedstoneMode
         ));
+        this.registerProperty(new ServerProperty<>(
+            StepCrafterPropertyTypes.VISIBLE_TO_THE_STEP_CRAFTER_MANAGER,
+            stepCrafter::isVisibleToTheStepCrafterManager,
+            stepCrafter::setVisibleToTheStepCrafterManager
+        ));
         this.addSlots(stepCrafter.getPatternResourceContainer(), stepCrafter.getUpgradeContainer());
-    }
-
-    void setListener(@Nullable final Listener listener) {
-        this.listener = listener;
-    }
-
-    @Override
-    public void broadcastChanges() {
-        super.broadcastChanges();
-        if (this.stepCrafter == null) {
-            return;
-        }
-        if (this.nameRateLimiter.tryAcquire()) {
-            this.detectNameChange();
-        }
     }
 
     @Override
@@ -93,17 +74,6 @@ public class StepCrafterContainerMenu extends AbstractPatternResourceContainerMe
             return true;
         }
         return Container.stillValidBlockEntity(this.stepCrafter, p);
-    }
-
-    private void detectNameChange() {
-        if (this.stepCrafter == null) {
-            return;
-        }
-        final Component newName = this.stepCrafter.getDisplayName();
-        if (!newName.equals(this.name)) {
-            this.name = newName;
-            Platform.INSTANCE.sendPacketToClient((ServerPlayer) this.player, new StepCrafterNameUpdatePacket(newName));
-        }
     }
 
     @Override
@@ -132,27 +102,8 @@ public class StepCrafterContainerMenu extends AbstractPatternResourceContainerMe
         return false;
     }
 
-    public void changeName(final String newName) {
-        if (this.stepCrafter != null) {
-            this.stepCrafter.setCustomName(newName);
-            this.detectNameChange();
-        } else {
-            Platform.INSTANCE.sendPacketToServer(new StepCrafterNameChangePacket(newName));
-        }
-    }
-
-    public void nameChanged(final Component newName) {
-        if (this.listener != null) {
-            this.listener.nameChanged(newName);
-        }
-    }
-
     @Override
     public int getAmountSlotUpgrades() {
         return this.amountSlotUpgrades;
-    }
-
-    public interface Listener {
-        void nameChanged(Component name);
     }
 }

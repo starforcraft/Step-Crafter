@@ -1,15 +1,16 @@
 package com.ultramega.stepcrafter.fabric;
 
 import com.ultramega.stepcrafter.common.AbstractModInitializer;
-import com.ultramega.stepcrafter.common.Platform;
+import com.ultramega.stepcrafter.common.PlatformProxy;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceFilterSlotChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotAmountChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.RequestMaintainableResourcesPacket;
-import com.ultramega.stepcrafter.common.packet.c2s.StepCrafterNameChangePacket;
+import com.ultramega.stepcrafter.common.packet.c2s.StepNameChangePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.PatternResourceSlotUpdatePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.SetMaintainableResourcesPacket;
-import com.ultramega.stepcrafter.common.packet.s2c.StepCrafterNameUpdatePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepManagerActivePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepNameUpdatePacket;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
 import com.ultramega.stepcrafter.common.registry.CreativeModeTabItems;
 
@@ -50,7 +51,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 public class ModInitializerImpl extends AbstractModInitializer implements RefinedStoragePlugin, ModInitializer {
     @Override
     public void onApiAvailable(final RefinedStorageApi refinedStorageApi) {
-        Platform.setConfigProvider(ConfigImpl::get);
+        PlatformProxy.loadPlatform(new PlatformImpl());
         this.registerContent();
         this.registerCapabilities();
         this.registerPackets();
@@ -92,6 +93,7 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
     private void registerCapabilities() {
         this.registerNetworkNodeContainerProvider(BlockEntities.INSTANCE.getStepCrafter());
         this.registerNetworkNodeContainerProvider(BlockEntities.INSTANCE.getStepRequester());
+        this.registerNetworkNodeContainerProvider(BlockEntities.INSTANCE.getStepCrafterManager());
     }
 
     private void registerNetworkNodeContainerProvider(final BlockEntityType<? extends AbstractNetworkNodeContainerBlockEntity<?>> type) {
@@ -106,11 +108,12 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
         PayloadTypeRegistry.playC2S().register(PatternResourceSlotAmountChangePacket.PACKET_TYPE, PatternResourceSlotAmountChangePacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(PatternResourceFilterSlotChangePacket.PACKET_TYPE, PatternResourceFilterSlotChangePacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RequestMaintainableResourcesPacket.PACKET_TYPE, RequestMaintainableResourcesPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(StepCrafterNameChangePacket.PACKET_TYPE, StepCrafterNameChangePacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(StepNameChangePacket.PACKET_TYPE, StepNameChangePacket.STREAM_CODEC);
 
         PayloadTypeRegistry.playS2C().register(PatternResourceSlotUpdatePacket.PACKET_TYPE, PatternResourceSlotUpdatePacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(SetMaintainableResourcesPacket.PACKET_TYPE, SetMaintainableResourcesPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(StepCrafterNameUpdatePacket.PACKET_TYPE, StepCrafterNameUpdatePacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(StepNameUpdatePacket.PACKET_TYPE, StepNameUpdatePacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(StepManagerActivePacket.PACKET_TYPE, StepManagerActivePacket.STREAM_CODEC);
     }
 
     private void registerPacketHandlers() {
@@ -131,8 +134,8 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
             wrapHandler(RequestMaintainableResourcesPacket::handle)
         );
         ServerPlayNetworking.registerGlobalReceiver(
-            StepCrafterNameChangePacket.PACKET_TYPE,
-            wrapHandler(StepCrafterNameChangePacket::handle)
+            StepNameChangePacket.PACKET_TYPE,
+            wrapHandler(StepNameChangePacket::handle)
         );
     }
 
@@ -148,14 +151,14 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
             refinedStorageApi.getCreativeModeTabId()
         );
         ItemGroupEvents.modifyEntriesEvent(creativeModeTab).register(
-            entries -> CreativeModeTabItems.append(entries::accept)
+            entries -> CreativeModeTabItems.appendBlocks(entries::accept)
         );
-        /*final ResourceKey<CreativeModeTab> coloredCreativeModeTab = ResourceKey.create(
+        final ResourceKey<CreativeModeTab> coloredCreativeModeTab = ResourceKey.create(
             Registries.CREATIVE_MODE_TAB,
             refinedStorageApi.getColoredCreativeModeTabId()
         );
         ItemGroupEvents.modifyEntriesEvent(coloredCreativeModeTab).register(
             entries -> CreativeModeTabItems.appendColoredVariants(entries::accept)
-        );*/
+        );
     }
 }

@@ -1,3 +1,5 @@
+import net.neoforged.moddevgradle.dsl.NeoForgeExtension as NeoForge
+
 plugins {
     id("com.refinedmods.refinedarchitect.neoforge")
 }
@@ -26,6 +28,16 @@ refinedarchitect {
     modId = "stepcrafter"
     version = modVersion
     neoForge()
+    dataGeneration(project(":common"))
+
+    project.afterEvaluate {
+        project.extensions.getByType<NeoForge>().runs.named("data") {
+            programArguments.addAll(
+                "--existing-mod", "refinedstorage"
+            )
+        }
+    }
+
     publishing {
         maven = true
     }

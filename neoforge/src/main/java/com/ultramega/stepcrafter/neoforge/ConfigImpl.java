@@ -2,8 +2,10 @@ package com.ultramega.stepcrafter.neoforge;
 
 import com.ultramega.stepcrafter.common.Config;
 import com.ultramega.stepcrafter.common.DefaultConfig;
+import com.ultramega.stepcrafter.common.stepmanager.StepManagerSearchMode;
 
 import com.refinedmods.refinedstorage.common.Config.SimpleEnergyUsageEntry;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerViewType;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -18,11 +20,15 @@ public class ConfigImpl implements Config {
 
     private final SimpleEnergySpeedUsageEntry stepCrafter;
     private final SimpleEnergyUsageEntry stepRequester;
+    private final StepManagerEntry stepCrafterManager;
+    private final StepManagerEntry stepRequesterManager;
     private final SimpleEnergyUsageEntry slotUpgrade;
 
     public ConfigImpl() {
         this.stepCrafter = new SimpleEnergySpeedUsageEntryImpl("stepCrafter", DefaultConfig.STEP_CRAFTER_ENERGY_USAGE, DefaultConfig.STEP_CRAFTER_SPEED_MULTIPLIER);
         this.stepRequester = new SimpleEnergyUsageEntryImpl("stepRequester", DefaultConfig.STEP_REQUESTER_ENERGY_USAGE);
+        this.stepCrafterManager = new StepManagerEntryImpl("stepCrafterManager", DefaultConfig.STEP_CRAFTER_MANAGER_ENERGY_USAGE);
+        this.stepRequesterManager = new StepManagerEntryImpl("stepRequesterManager", DefaultConfig.STEP_REQUESTER_MANAGER_ENERGY_USAGE);
         this.slotUpgrade = new SimpleEnergyUsageEntryImpl("slotUpgrade", DefaultConfig.SLOT_UPGRADE_ENERGY_USAGE);
         this.spec = this.builder.build();
     }
@@ -42,12 +48,64 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public StepManagerEntry getStepCrafterManager() {
+        return this.stepCrafterManager;
+    }
+
+    @Override
+    public StepManagerEntry getStepRequesterManager() {
+        return this.stepRequesterManager;
+    }
+
+    @Override
     public SimpleEnergyUsageEntry getSlotUpgrade() {
         return this.slotUpgrade;
     }
 
     private static String translationKey(final String value) {
         return createStepCrafterTranslationKey("text.autoconfig", "option." + value);
+    }
+
+    private class StepManagerEntryImpl extends SimpleEnergyUsageEntryImpl implements StepManagerEntry {
+        private final ModConfigSpec.EnumValue<StepManagerSearchMode> searchMode;
+        private final ModConfigSpec.EnumValue<AutocrafterManagerViewType> viewType;
+
+        StepManagerEntryImpl(final String path, final long energyDefaultValue) {
+            super(path, energyDefaultValue, false);
+            this.searchMode = ConfigImpl.this.builder
+                .translation(translationKey(path + ".searchMode"))
+                .defineEnum("searchMode", StepManagerSearchMode.ALL);
+            this.viewType = ConfigImpl.this.builder
+                .translation(translationKey(path + ".viewType"))
+                .defineEnum("viewType", AutocrafterManagerViewType.VISIBLE);
+            ConfigImpl.this.builder.pop();
+        }
+
+        @Override
+        public void setSearchMode(final StepManagerSearchMode searchMode) {
+            if (searchMode != this.searchMode.get()) {
+                this.searchMode.set(searchMode);
+                ConfigImpl.this.spec.save();
+            }
+        }
+
+        @Override
+        public StepManagerSearchMode getSearchMode() {
+            return this.searchMode.get();
+        }
+
+        @Override
+        public void setViewType(final AutocrafterManagerViewType viewType) {
+            if (viewType != this.viewType.get()) {
+                this.viewType.set(viewType);
+                ConfigImpl.this.spec.save();
+            }
+        }
+
+        @Override
+        public AutocrafterManagerViewType getViewType() {
+            return this.viewType.get();
+        }
     }
 
     private class SimpleEnergySpeedUsageEntryImpl extends SimpleEnergyUsageEntryImpl implements SimpleEnergySpeedUsageEntry {

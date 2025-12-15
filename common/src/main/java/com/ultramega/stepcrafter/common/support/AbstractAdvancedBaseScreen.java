@@ -19,10 +19,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -85,29 +89,38 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
             return;
         }
 
-        final PoseStack poseStack = graphics.pose();
         for (final PatternResourceSlot slot : patternContainerMenu.getPatternResourceSlots()) {
-            if (slot.isActive() && slot.getResource() != null) {
-                final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(slot.getResource().getClass());
-                final String formattedMinAmount = rendering.formatAmount(slot.getMinAmount(), true);
-                final String formattedMaxAmount = rendering.formatAmount(slot.getMaxAmount(), true);
+            drawSlotMinMax(graphics, this.font, slot, this.leftPos, this.topPos, showBatchSize);
+        }
+    }
 
-                poseStack.pushPose();
-                poseStack.translate(this.leftPos + slot.x, this.topPos + slot.y, 260F);
-                poseStack.scale(0.5F, 0.5F, 0.5F);
+    public static void drawSlotMinMax(final GuiGraphics graphics,
+                                      final Font font,
+                                      final PatternResourceSlot slot,
+                                      final int leftPos,
+                                      final int topPos,
+                                      final boolean showBatchSize) {
+        final PoseStack poseStack = graphics.pose();
+        if (slot.isActive() && slot.getResource() != null) {
+            final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(slot.getResource().getClass());
+            final String formattedMinAmount = rendering.formatAmount(slot.getMinAmount(), true);
+            final String formattedMaxAmount = rendering.formatAmount(slot.getMaxAmount(), true);
 
-                graphics.drawString(this.font, formattedMinAmount, 0, 0, 0xFFFFFF);
-                if (showBatchSize) {
-                    final String formattedBatchSize = ItemResourceRendering.INSTANCE.formatAmount(slot.getBatchSize(), true);
-                    graphics.drawString(this.font, formattedBatchSize, 0, 12, 0xFFFFFF);
-                }
-                graphics.drawString(this.font, formattedMaxAmount, 0, 24, 0xFFFFFF);
+            poseStack.pushPose();
+            poseStack.translate(leftPos + slot.x, topPos + slot.y, 260F);
+            poseStack.scale(0.5F, 0.5F, 0.5F);
 
-                if (slot.isCrafting()) {
-                    graphics.blitSprite(AUTOCRAFTING_INDICATOR, 22, -2, 10, 10);
-                }
-                poseStack.popPose();
+            graphics.drawString(font, formattedMinAmount, 0, 0, 0xFFFFFF);
+            if (showBatchSize) {
+                final String formattedBatchSize = ItemResourceRendering.INSTANCE.formatAmount(slot.getBatchSize(), true);
+                graphics.drawString(font, formattedBatchSize, 0, 12, 0xFFFFFF);
             }
+            graphics.drawString(font, formattedMaxAmount, 0, 24, 0xFFFFFF);
+
+            if (slot.isCrafting()) {
+                graphics.blitSprite(AUTOCRAFTING_INDICATOR, 22, -2, 10, 10);
+            }
+            poseStack.popPose();
         }
     }
 
@@ -130,14 +143,24 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
     }
 
     protected boolean tryOpenResourceAmountScreen(final PatternResourceSlot slot, final boolean showBatchSize, final boolean hasToPressShift) {
+        return tryOpenResourceAmountScreen(this.minecraft, this.getMenu(), this.playerInventory, this, slot, showBatchSize, hasToPressShift);
+    }
+
+    public static boolean tryOpenResourceAmountScreen(@Nullable final Minecraft minecraft,
+                                                      final AbstractContainerMenu containerMenu,
+                                                      final Inventory playerInventory,
+                                                      final Screen parent,
+                                                      final PatternResourceSlot slot,
+                                                      final boolean showBatchSize,
+                                                      final boolean hasToPressShift) {
         final boolean isFilterSlot = slot.getResource() != null;
         final boolean isNotTryingToRemoveFilter = hasToPressShift == hasShiftDown();
-        final boolean isNotCarryingItem = this.getMenu().getCarried().isEmpty();
+        final boolean isNotCarryingItem = containerMenu.getCarried().isEmpty();
         final boolean canOpen = isFilterSlot
             && isNotTryingToRemoveFilter
             && isNotCarryingItem;
-        if (canOpen && this.minecraft != null) {
-            this.minecraft.setScreen(new ResourceConfigurationScreen(this, this.playerInventory, slot, showBatchSize));
+        if (canOpen && minecraft != null) {
+            minecraft.setScreen(new ResourceConfigurationScreen(parent, playerInventory, slot, showBatchSize));
         }
         return canOpen;
     }
@@ -163,16 +186,20 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
     }
 
     protected List<ClientTooltipComponent> getPatternResourceSlotTooltip(final ResourceKey resource, final PatternResourceSlot slot) {
-        final List<ClientTooltipComponent> tooltip = RefinedStorageClientApi.INSTANCE
+        final List<ClientTooltipComponent> tooltip = getTooltipsForResource(resource);
+        this.addPatternResourceSlotTooltips(slot, tooltip);
+
+        return tooltip;
+    }
+
+    public static List<ClientTooltipComponent> getTooltipsForResource(final ResourceKey resource) {
+        return RefinedStorageClientApi.INSTANCE
             .getResourceRendering(resource.getClass())
             .getTooltip(resource)
             .stream()
             .map(Component::getVisualOrderText)
             .map(ClientTooltipComponent::create)
             .collect(Collectors.toList());
-        this.addPatternResourceSlotTooltips(slot, tooltip);
-
-        return tooltip;
     }
 
     private List<ClientTooltipComponent> getTooltipForEmptyPatternResourceSlot(final ItemStack carried,

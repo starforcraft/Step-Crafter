@@ -1,6 +1,7 @@
 package com.ultramega.stepcrafter.common.compat.jei;
 
 import com.ultramega.stepcrafter.common.steprequester.StepRequesterScreen;
+import com.ultramega.stepcrafter.common.steprequestermanager.StepRequesterManagerScreen;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -16,6 +17,7 @@ public class JeiModPlugin implements IModPlugin {
     @Override
     public void registerGuiHandlers(final IGuiHandlerRegistration registration) {
         registration.addGhostIngredientHandler(StepRequesterScreen.class, new PatternResourceGhostIngredientHandler());
+        registration.addGhostIngredientHandler(StepRequesterManagerScreen.class, new StepRequesterManagerGhostIngredientHandler());
     }
 
     @Override

@@ -68,8 +68,6 @@
         <module name="IllegalType"/>
         <module name="InnerAssignment"/>
         <module name="ModifiedControlVariable"/>
-        <module name="NestedForDepth"/>
-        <module name="NestedIfDepth"/>
         <module name="NestedTryDepth"/>
         <module name="NoArrayTrailingComma"/>
         <module name="NoClone"/>

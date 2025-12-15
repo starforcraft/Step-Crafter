@@ -5,6 +5,7 @@ import com.ultramega.stepcrafter.common.Platform;
 import com.ultramega.stepcrafter.common.UpgradeDestinations;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
 import com.ultramega.stepcrafter.common.registry.Items;
+import com.ultramega.stepcrafter.common.support.AbstractEditableNameBlockEntity;
 import com.ultramega.stepcrafter.common.support.PatternMinMax;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerData;
@@ -13,11 +14,12 @@ import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceC
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternInventory;
 import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.AutocrafterData;
 import com.refinedmods.refinedstorage.common.support.BlockEntityWithDrops;
 import com.refinedmods.refinedstorage.common.support.containermenu.ExtendedMenuProvider;
-import com.refinedmods.refinedstorage.common.support.network.AbstractBaseNetworkNodeContainerBlockEntity;
+import com.refinedmods.refinedstorage.common.support.network.SimpleConnectionStrategy;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
@@ -38,41 +40,42 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class StepCrafterBlockEntity extends AbstractBaseNetworkNodeContainerBlockEntity<StepCrafterNetworkNode>
+public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<StepCrafterNetworkNode>
     implements ExtendedMenuProvider<StepCrafterData>, BlockEntityWithDrops, PatternInventory.Listener {
     static final int UPGRADES = 8;
     static final int PATTERNS = 9 * 5;
 
     private static final String TAG_UPGRADES = "upgr";
     private static final String TAG_PATTERNS = "patterns";
+    private static final String TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER = "vstm";
 
     private final PatternResourceContainerImpl patternResourceContainer;
     private final UpgradeContainer upgradeContainer;
+    private boolean visibleToTheStepCrafterManager = true;
 
     private int speed = 0;
-    private int amountSlotUpgrades = 0;
+    private int slotUpgradesCount = 0;
 
-    //TODO: step crafter monitor to see all the step crafters in the network
     public StepCrafterBlockEntity(final BlockPos pos, final BlockState state) {
         super(
             BlockEntities.INSTANCE.getStepCrafter(),
             pos,
             state,
-            new StepCrafterNetworkNode(Platform.getConfig().getStepCrafter().getEnergyUsage(), PATTERNS)
+            new StepCrafterNetworkNode(Platform.INSTANCE.getConfig().getStepCrafter().getEnergyUsage(), PATTERNS)
         );
-        this.patternResourceContainer = createPatternResourcesContainer(this::getLevel, this::getAmountSlotUpgrades);
+        this.patternResourceContainer = createPatternResourcesContainer(this::getLevel, this::getSlotUpgradesCount);
         this.upgradeContainer = new UpgradeContainer(UPGRADES, UpgradeDestinations.STEP_CRAFTER, (c, upgradeEnergyUsage) -> {
-            final long baseEnergyUsage = Platform.getConfig().getStepCrafter().getEnergyUsage();
+            final long baseEnergyUsage = Platform.INSTANCE.getConfig().getStepCrafter().getEnergyUsage();
             final long patternEnergyUsage = this.patternResourceContainer.getEnergyUsage();
             this.mainNetworkNode.setEnergyUsage(baseEnergyUsage + patternEnergyUsage + upgradeEnergyUsage);
             this.speed = Math.clamp((long) c.getAmount(com.refinedmods.refinedstorage.common.content.Items.INSTANCE.getSpeedUpgrade())
-                * Platform.getConfig().getStepCrafter().getSpeedMultiplier(), 0, Integer.MAX_VALUE);
-            this.amountSlotUpgrades = c.getAmount(Items.INSTANCE.getSlotUpgrade());
+                * Platform.INSTANCE.getConfig().getStepCrafter().getSpeedMultiplier(), 0, Integer.MAX_VALUE);
+            this.slotUpgradesCount = c.getAmount(Items.INSTANCE.getSlotUpgrade());
             this.setChanged();
         });
         this.patternResourceContainer.addListener(container -> {
             final long upgradeEnergyUsage = this.upgradeContainer.getEnergyUsage();
-            final long baseEnergyUsage = Platform.getConfig().getStepCrafter().getEnergyUsage();
+            final long baseEnergyUsage = Platform.INSTANCE.getConfig().getStepCrafter().getEnergyUsage();
             final long patternEnergyUsage = this.patternResourceContainer.getEnergyUsage();
             this.mainNetworkNode.setEnergyUsage(baseEnergyUsage + patternEnergyUsage + upgradeEnergyUsage);
             this.setChanged();
@@ -80,6 +83,16 @@ public class StepCrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         this.patternResourceContainer.setListener(this);
         this.patternResourceContainer.setChangedListener(this::onPatternResourcesChange);
         this.mainNetworkNode.setBlockEntity(this);
+    }
+
+    @Override
+    protected InWorldNetworkNodeContainer createMainContainer(final StepCrafterNetworkNode networkNode) {
+        return new StepCrafterNetworkNodeContainer(
+            this,
+            networkNode,
+            "main",
+            new SimpleConnectionStrategy(this.getBlockPos()) //TODO: change this later when the step crafter should export into external inventories
+        );
     }
 
     static PatternResourceContainerImpl createPatternResourcesContainer(final Supplier<@NullableType Level> levelSupplier, final Supplier<Integer> amountSupplier) {
@@ -112,8 +125,8 @@ public class StepCrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         return this.speed;
     }
 
-    public int getAmountSlotUpgrades() {
-        return this.amountSlotUpgrades;
+    public int getSlotUpgradesCount() {
+        return this.slotUpgradesCount;
     }
 
     @Override
@@ -151,6 +164,7 @@ public class StepCrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     @Override
     public void writeConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
         super.writeConfiguration(tag, provider);
+        tag.putBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER, this.visibleToTheStepCrafterManager);
     }
 
     @Override
@@ -167,6 +181,9 @@ public class StepCrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     @Override
     public void readConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
         super.readConfiguration(tag, provider);
+        if (tag.contains(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER)) {
+            this.visibleToTheStepCrafterManager = tag.getBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER);
+        }
     }
 
     @Override
@@ -179,14 +196,18 @@ public class StepCrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         return drops;
     }
 
-    void setCustomName(final String name) {
-        this.setCustomName(name.trim().isBlank() ? null : Component.literal(name));
-        this.setChanged();
-    }
-
     private void onPatternResourcesChange(final int index) {
         this.setChanged();
         this.patternChanged(index);
+    }
+
+    boolean isVisibleToTheStepCrafterManager() {
+        return this.visibleToTheStepCrafterManager;
+    }
+
+    void setVisibleToTheStepCrafterManager(final boolean visibleToTheStepCrafterManager) {
+        this.visibleToTheStepCrafterManager = visibleToTheStepCrafterManager;
+        this.setChanged();
     }
 
     @Override

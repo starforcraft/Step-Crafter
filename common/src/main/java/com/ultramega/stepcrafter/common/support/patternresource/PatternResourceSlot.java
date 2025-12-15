@@ -43,7 +43,6 @@ public class PatternResourceSlot extends ValidatedSlot {
         this.helpText = helpText;
         this.level = level;
         this.isFilter = isFilter;
-        this.cachedResource = this.container.get(index);
     }
 
     public PatternResourceSlot forAmountScreen(final int newX, final int newY) {
@@ -82,10 +81,10 @@ public class PatternResourceSlot extends ValidatedSlot {
     }
 
     public void changeAmount(final long minAmount, final long maxAmount, final long batchSize) {
-        this.container.setMinAmount(this.index, minAmount);
-        this.container.setMaxAmount(this.index, maxAmount);
-        this.container.setBatchSize(this.index, batchSize);
-        this.container.changed(this.index);
+        this.container.setMinAmount(this.getContainerSlot(), minAmount);
+        this.container.setMaxAmount(this.getContainerSlot(), maxAmount);
+        this.container.setBatchSize(this.getContainerSlot(), batchSize);
+        this.container.changed(this.getContainerSlot());
     }
 
     public void changeAmountOnClient(final double minAmount, final double maxAmount, final double batchSize) {
@@ -102,23 +101,23 @@ public class PatternResourceSlot extends ValidatedSlot {
 
     @Nullable
     public PlatformResourceKey getResource() {
-        return this.container.getResource(this.getContainerSlot()); //TODO: replace with cachedResource?
+        return this.container.getResource(this.getContainerSlot());
     }
 
     public long getMinAmount() {
-        return this.container.getMinAmount(this.index);
+        return this.container.getMinAmount(this.getContainerSlot());
     }
 
     public long getMaxAmount() {
-        return this.container.getMaxAmount(this.index);
+        return this.container.getMaxAmount(this.getContainerSlot());
     }
 
     public long getBatchSize() {
-        return this.container.getBatchSize(this.index);
+        return this.container.getBatchSize(this.getContainerSlot());
     }
 
     public boolean isCrafting() {
-        return this.container.isCrafting(this.index);
+        return this.container.isCrafting(this.getContainerSlot());
     }
 
     public boolean contains(final ItemStack stack) {
@@ -143,7 +142,7 @@ public class PatternResourceSlot extends ValidatedSlot {
 
     @Override
     public boolean isActive() {
-        return this.container.isActive(this.index);
+        return this.container.isActive(this.getContainerSlot());
     }
 
     @Override

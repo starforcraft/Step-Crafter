@@ -1,29 +1,35 @@
 package com.ultramega.stepcrafter.common.steprequester;
 
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotChangePacket;
-import com.ultramega.stepcrafter.common.support.AbstractAdvancedBaseScreen;
+import com.ultramega.stepcrafter.common.steprequester.widget.VisibleToTheStepRequesterManagerSideButtonWidget;
+import com.ultramega.stepcrafter.common.support.AbstractEditableNameScreen;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlotRendering;
 
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes;
 import com.refinedmods.refinedstorage.common.support.widget.RedstoneModeSideButtonWidget;
+import com.refinedmods.refinedstorage.common.support.widget.TextMarquee;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public class StepRequesterScreen extends AbstractAdvancedBaseScreen<StepRequesterContainerMenu> {
+public class StepRequesterScreen extends AbstractEditableNameScreen<StepRequesterContainerMenu> {
     public StepRequesterScreen(final StepRequesterContainerMenu menu,
                                final Inventory playerInventory,
                                final Component title) {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, new TextMarquee(title, getTitleMaxWidth()));
     }
 
     @Override
     protected void init() {
         super.init();
+
         this.addSideButton(new RedstoneModeSideButtonWidget(this.getMenu().getProperty(PropertyTypes.REDSTONE_MODE)));
+        this.addSideButton(new VisibleToTheStepRequesterManagerSideButtonWidget(
+            this.getMenu().getProperty(StepRequesterPropertyTypes.VISIBLE_TO_THE_STEP_REQUESTER_MANAGER)
+        ));
     }
 
     @Override

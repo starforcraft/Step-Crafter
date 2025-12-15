@@ -5,14 +5,16 @@ import com.ultramega.stepcrafter.common.Platform;
 import com.ultramega.stepcrafter.common.UpgradeDestinations;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
 import com.ultramega.stepcrafter.common.registry.Items;
+import com.ultramega.stepcrafter.common.support.AbstractEditableNameBlockEntity;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerData;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 
 import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.support.BlockEntityWithDrops;
 import com.refinedmods.refinedstorage.common.support.containermenu.ExtendedMenuProvider;
-import com.refinedmods.refinedstorage.common.support.network.AbstractBaseNetworkNodeContainerBlockEntity;
+import com.refinedmods.refinedstorage.common.support.network.SimpleConnectionStrategy;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
@@ -33,37 +35,49 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class StepRequesterBlockEntity extends AbstractBaseNetworkNodeContainerBlockEntity<StepRequesterNetworkNode>
+public class StepRequesterBlockEntity extends AbstractEditableNameBlockEntity<StepRequesterNetworkNode>
     implements ExtendedMenuProvider<StepRequesterData>, BlockEntityWithDrops {
     static final int UPGRADES = 8;
     static final int FILTERS = 9 * 5;
 
     private static final String TAG_UPGRADES = "upgr";
     private static final String TAG_RESOURCE_FILTER = "rf";
+    private static final String TAG_VISIBLE_TO_THE_STEP_REQUESTER_MANAGER = "vsrm";
 
     private final PatternResourceContainerImpl filterContainer;
     private final UpgradeContainer upgradeContainer;
+    private boolean visibleToTheStepRequesterManager = true;
 
     private int speed = 0;
-    private int amountSlotUpgrades = 0;
+    private int slotUpgradesCount = 0;
 
     public StepRequesterBlockEntity(final BlockPos pos, final BlockState state) {
         super(
             BlockEntities.INSTANCE.getStepRequester(),
             pos,
             state,
-            new StepRequesterNetworkNode(Platform.getConfig().getStepRequester().getEnergyUsage())
+            new StepRequesterNetworkNode(Platform.INSTANCE.getConfig().getStepRequester().getEnergyUsage())
         );
-        this.filterContainer = createFilterContainer(this::getLevel, this::getAmountSlotUpgrades);
+        this.filterContainer = createFilterContainer(this::getLevel, this::getSlotUpgradesCount);
         this.upgradeContainer = new UpgradeContainer(UPGRADES, UpgradeDestinations.STEP_REQUESTER, (c, upgradeEnergyUsage) -> {
-            final long baseEnergyUsage = Platform.getConfig().getStepRequester().getEnergyUsage();
+            final long baseEnergyUsage = Platform.INSTANCE.getConfig().getStepRequester().getEnergyUsage();
             this.mainNetworkNode.setEnergyUsage(baseEnergyUsage + upgradeEnergyUsage);
             this.speed = c.getAmount(com.refinedmods.refinedstorage.common.content.Items.INSTANCE.getSpeedUpgrade()) * 2;
-            this.amountSlotUpgrades = c.getAmount(Items.INSTANCE.getSlotUpgrade());
+            this.slotUpgradesCount = c.getAmount(Items.INSTANCE.getSlotUpgrade());
             this.setChanged();
         });
         this.filterContainer.setChangedListener((i) -> this.setChanged());
         this.mainNetworkNode.setBlockEntity(this);
+    }
+
+    @Override
+    protected InWorldNetworkNodeContainer createMainContainer(final StepRequesterNetworkNode networkNode) {
+        return new StepRequesterNetworkNodeContainer(
+            this,
+            networkNode,
+            "main",
+            new SimpleConnectionStrategy(this.getBlockPos())
+        );
     }
 
     static PatternResourceContainerImpl createFilterContainer(final Supplier<@NullableType Level> levelSupplier, final Supplier<Integer> amountSupplier) {
@@ -101,8 +115,8 @@ public class StepRequesterBlockEntity extends AbstractBaseNetworkNodeContainerBl
         return this.speed;
     }
 
-    public int getAmountSlotUpgrades() {
-        return this.amountSlotUpgrades;
+    public int getSlotUpgradesCount() {
+        return this.slotUpgradesCount;
     }
 
     @Override
@@ -137,6 +151,12 @@ public class StepRequesterBlockEntity extends AbstractBaseNetworkNodeContainerBl
     }
 
     @Override
+    public void writeConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
+        super.writeConfiguration(tag, provider);
+        tag.putBoolean(TAG_VISIBLE_TO_THE_STEP_REQUESTER_MANAGER, this.visibleToTheStepRequesterManager);
+    }
+
+    @Override
     public void loadAdditional(final CompoundTag tag, final HolderLookup.Provider provider) {
         if (tag.contains(TAG_RESOURCE_FILTER)) {
             this.filterContainer.fromTag(tag.getList(TAG_RESOURCE_FILTER, Tag.TAG_COMPOUND), provider);
@@ -148,9 +168,26 @@ public class StepRequesterBlockEntity extends AbstractBaseNetworkNodeContainerBl
     }
 
     @Override
+    public void readConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
+        super.readConfiguration(tag, provider);
+        if (tag.contains(TAG_VISIBLE_TO_THE_STEP_REQUESTER_MANAGER)) {
+            this.visibleToTheStepRequesterManager = tag.getBoolean(TAG_VISIBLE_TO_THE_STEP_REQUESTER_MANAGER);
+        }
+    }
+
+    @Override
     public NonNullList<ItemStack> getDrops() {
         final NonNullList<ItemStack> drops = NonNullList.create();
         drops.addAll(this.upgradeContainer.getDrops());
         return drops;
+    }
+
+    boolean isVisibleToTheStepRequesterManager() {
+        return this.visibleToTheStepRequesterManager;
+    }
+
+    void setVisibleToTheStepRequesterManager(final boolean visibleToTheStepRequesterManager) {
+        this.visibleToTheStepRequesterManager = visibleToTheStepRequesterManager;
+        this.setChanged();
     }
 }

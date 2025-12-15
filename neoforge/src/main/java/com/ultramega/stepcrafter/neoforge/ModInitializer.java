@@ -1,15 +1,16 @@
 package com.ultramega.stepcrafter.neoforge;
 
 import com.ultramega.stepcrafter.common.AbstractModInitializer;
-import com.ultramega.stepcrafter.common.Platform;
+import com.ultramega.stepcrafter.common.PlatformProxy;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceFilterSlotChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotAmountChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.RequestMaintainableResourcesPacket;
-import com.ultramega.stepcrafter.common.packet.c2s.StepCrafterNameChangePacket;
+import com.ultramega.stepcrafter.common.packet.c2s.StepNameChangePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.PatternResourceSlotUpdatePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.SetMaintainableResourcesPacket;
-import com.ultramega.stepcrafter.common.packet.s2c.StepCrafterNameUpdatePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepManagerActivePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepNameUpdatePacket;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
 import com.ultramega.stepcrafter.common.registry.CreativeModeTabItems;
 
@@ -44,7 +45,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -67,9 +67,7 @@ public class ModInitializer extends AbstractModInitializer {
     private final DeferredRegister<MenuType<?>> menuTypeRegistry = DeferredRegister.create(BuiltInRegistries.MENU, MOD_ID);
 
     public ModInitializer(final IEventBus eventBus, final ModContainer modContainer) {
-        final ConfigImpl config = new ConfigImpl();
-        modContainer.registerConfig(ModConfig.Type.COMMON, config.getSpec());
-        Platform.setConfigProvider(() -> config);
+        PlatformProxy.loadPlatform(new PlatformImpl(modContainer));
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             eventBus.addListener(ClientModInitializer::onClientSetup);
@@ -134,6 +132,7 @@ public class ModInitializer extends AbstractModInitializer {
     private void registerCapabilities(final RegisterCapabilitiesEvent event) {
         this.registerNetworkNodeContainerProvider(event, BlockEntities.INSTANCE.getStepCrafter());
         this.registerNetworkNodeContainerProvider(event, BlockEntities.INSTANCE.getStepRequester());
+        this.registerNetworkNodeContainerProvider(event, BlockEntities.INSTANCE.getStepCrafterManager());
     }
 
     private void registerNetworkNodeContainerProvider(final RegisterCapabilitiesEvent event,
@@ -168,9 +167,9 @@ public class ModInitializer extends AbstractModInitializer {
             wrapHandler(RequestMaintainableResourcesPacket::handle)
         );
         registrar.playToServer(
-            StepCrafterNameChangePacket.PACKET_TYPE,
-            StepCrafterNameChangePacket.STREAM_CODEC,
-            wrapHandler(StepCrafterNameChangePacket::handle)
+            StepNameChangePacket.PACKET_TYPE,
+            StepNameChangePacket.STREAM_CODEC,
+            wrapHandler(StepNameChangePacket::handle)
         );
 
         registrar.playToClient(
@@ -184,9 +183,14 @@ public class ModInitializer extends AbstractModInitializer {
             wrapHandler(SetMaintainableResourcesPacket::handle)
         );
         registrar.playToClient(
-            StepCrafterNameUpdatePacket.PACKET_TYPE,
-            StepCrafterNameUpdatePacket.STREAM_CODEC,
-            wrapHandler(StepCrafterNameUpdatePacket::handle)
+            StepNameUpdatePacket.PACKET_TYPE,
+            StepNameUpdatePacket.STREAM_CODEC,
+            wrapHandler(StepNameUpdatePacket::handle)
+        );
+        registrar.playToClient(
+            StepManagerActivePacket.PACKET_TYPE,
+            StepManagerActivePacket.STREAM_CODEC,
+            wrapHandler(StepManagerActivePacket::handle)
         );
     }
 
@@ -195,17 +199,16 @@ public class ModInitializer extends AbstractModInitializer {
             Registries.CREATIVE_MODE_TAB,
             RefinedStorageApi.INSTANCE.getCreativeModeTabId()
         );
-        /*final ResourceKey<CreativeModeTab> coloredCreativeModeTab = ResourceKey.create(
+        final ResourceKey<CreativeModeTab> coloredCreativeModeTab = ResourceKey.create(
             Registries.CREATIVE_MODE_TAB,
             RefinedStorageApi.INSTANCE.getColoredCreativeModeTabId()
-        );*/
+        );
 
         if (e.getTabKey().equals(creativeModeTab)) {
-            CreativeModeTabItems.append(e::accept);
-        }
-        /*else if (e.getTabKey().equals(coloredCreativeModeTab)) {
+            CreativeModeTabItems.appendBlocks(e::accept);
+        } else if (e.getTabKey().equals(coloredCreativeModeTab)) {
             CreativeModeTabItems.appendColoredVariants(e::accept);
-        }*/
+        }
     }
 
     private void onCommonSetup(final FMLCommonSetupEvent e) {

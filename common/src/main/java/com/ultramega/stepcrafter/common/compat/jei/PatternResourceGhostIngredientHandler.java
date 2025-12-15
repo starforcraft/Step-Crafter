@@ -2,6 +2,7 @@ package com.ultramega.stepcrafter.common.compat.jei;
 
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceFilterSlotChangePacket;
 import com.ultramega.stepcrafter.common.steprequester.StepRequesterScreen;
+import com.ultramega.stepcrafter.common.support.AbstractPatternResourceContainerMenu;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;
 
 import com.refinedmods.refinedstorage.common.Platform;
@@ -21,10 +22,19 @@ public class PatternResourceGhostIngredientHandler implements IGhostIngredientHa
     public <I> List<Target<I>> getTargetsTyped(final StepRequesterScreen screen,
                                                final ITypedIngredient<I> ingredient,
                                                final boolean doStart) {
+        return getTargetsTyped(screen, ingredient);
+    }
+
+    public static <I> List<Target<I>> getTargetsTyped(final AbstractBaseScreen<?> screen,
+                                                      final ITypedIngredient<I> ingredient) {
+        if (!(screen.getMenu() instanceof AbstractPatternResourceContainerMenu containerMenu)) {
+            return List.of();
+        }
+
         final List<Target<I>> targets = new ArrayList<>();
         RefinedStorageApi.INSTANCE.getIngredientConverter().convertToResource(ingredient.getIngredient())
             .ifPresent(resource -> {
-                for (final PatternResourceSlot slot : screen.getMenu().getPatternResourceSlots()) {
+                for (final PatternResourceSlot slot : containerMenu.getPatternResourceSlots()) {
                     if (slot.isActive() && slot.isFilter()) {
                         final Rect2i bounds = getBounds(screen, slot);
                         targets.add(new TargetImpl<>(bounds, slot.index));

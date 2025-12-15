@@ -1,22 +1,11 @@
 package com.ultramega.stepcrafter.common;
 
-import java.util.function.Supplier;
-import javax.annotation.Nullable;
+import net.minecraft.world.item.ItemStack;
 
-import static java.util.Objects.requireNonNull;
+public interface Platform {
+    Platform INSTANCE = new PlatformProxy();
 
-public final class Platform {
-    @Nullable
-    private static Supplier<Config> configProvider = null;
+    Config getConfig();
 
-    private Platform() {
-    }
-
-    public static void setConfigProvider(final Supplier<Config> configProvider) {
-        Platform.configProvider = configProvider;
-    }
-
-    public static Config getConfig() {
-        return requireNonNull(configProvider, "Config isn't loaded yet").get();
-    }
+    ItemStack getCraftingRemainingItem(ItemStack itemStack);
 }

@@ -31,7 +31,7 @@ public class SimpleUpgradeItem extends AbstractUpgradeItem {
     public static SimpleUpgradeItem slotUpgrade() {
         return new SimpleUpgradeItem(
             RefinedStorageApi.INSTANCE.getUpgradeRegistry(),
-            Platform.getConfig().getSlotUpgrade()::getEnergyUsage,
+            Platform.INSTANCE.getConfig().getSlotUpgrade()::getEnergyUsage,
             createStepCrafterTranslation("item", "slot_upgrade.help")
         );
     }

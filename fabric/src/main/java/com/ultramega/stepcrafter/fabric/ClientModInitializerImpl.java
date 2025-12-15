@@ -3,7 +3,8 @@ package com.ultramega.stepcrafter.fabric;
 import com.ultramega.stepcrafter.common.AbstractClientModInitializer;
 import com.ultramega.stepcrafter.common.packet.s2c.PatternResourceSlotUpdatePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.SetMaintainableResourcesPacket;
-import com.ultramega.stepcrafter.common.packet.s2c.StepCrafterNameUpdatePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepManagerActivePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepNameUpdatePacket;
 
 import com.refinedmods.refinedstorage.common.AbstractClientModInitializer.ScreenConstructor;
 import com.refinedmods.refinedstorage.common.AbstractClientModInitializer.ScreenRegistration;
@@ -41,8 +42,12 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
             wrapHandler(SetMaintainableResourcesPacket::handle)
         );
         ClientPlayNetworking.registerGlobalReceiver(
-            StepCrafterNameUpdatePacket.PACKET_TYPE,
-            wrapHandler(StepCrafterNameUpdatePacket::handle)
+            StepNameUpdatePacket.PACKET_TYPE,
+            wrapHandler(StepNameUpdatePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            StepManagerActivePacket.PACKET_TYPE,
+            wrapHandler(StepManagerActivePacket::handle)
         );
     }
 

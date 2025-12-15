@@ -40,7 +40,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
     @Nullable
     private final Set<ResourceFactory> alternativeResourceFactories;
     private final boolean isFilter;
-    private final Supplier<Integer> amountOfSlotUpgrades;
+    private final Supplier<Integer> slotUpgradesCount;
 
     @Nullable
     private Consumer<Integer> changedListener;
@@ -50,13 +50,13 @@ public class PatternResourceContainerImpl extends PatternInventory {
                                         @Nullable final ResourceFactory primaryResourceFactory,
                                         @Nullable final Set<ResourceFactory> alternativeResourceFactories,
                                         final boolean isFilter,
-                                        final Supplier<Integer> amountOfSlotUpgrades) {
+                                        final Supplier<Integer> slotUpgradesCount) {
         super(size, levelSupplier);
         this.slots = new ResourceMinMaxAmount[size];
         this.primaryResourceFactory = primaryResourceFactory;
         this.alternativeResourceFactories = alternativeResourceFactories;
         this.isFilter = isFilter;
-        this.amountOfSlotUpgrades = amountOfSlotUpgrades;
+        this.slotUpgradesCount = slotUpgradesCount;
     }
 
     public void setChangedListener(@Nullable final Consumer<Integer> changedListener) {
@@ -195,7 +195,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
     }
 
     public boolean isActive(final int slot) {
-        return slot < 9 * (this.amountOfSlotUpgrades.get() + 1);
+        return slot < 9 * (this.slotUpgradesCount.get() + 1);
     }
 
     public boolean isEmpty(final int index) {
