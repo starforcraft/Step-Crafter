@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_step_requester_managers": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#stepcrafter:step_requester_managers"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "stepcrafter:coloring/light_blue_step_requester_manager"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_step_requester_managers"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "stepcrafter:coloring/light_blue_step_requester_manager"
+    ]
+  }
+}

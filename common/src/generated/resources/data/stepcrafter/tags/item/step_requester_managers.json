@@ -1,0 +1,20 @@
+{
+  "values": [
+    "stepcrafter:white_step_requester_manager",
+    "stepcrafter:orange_step_requester_manager",
+    "stepcrafter:magenta_step_requester_manager",
+    "stepcrafter:step_requester_manager",
+    "stepcrafter:yellow_step_requester_manager",
+    "stepcrafter:lime_step_requester_manager",
+    "stepcrafter:pink_step_requester_manager",
+    "stepcrafter:gray_step_requester_manager",
+    "stepcrafter:light_gray_step_requester_manager",
+    "stepcrafter:cyan_step_requester_manager",
+    "stepcrafter:purple_step_requester_manager",
+    "stepcrafter:blue_step_requester_manager",
+    "stepcrafter:brown_step_requester_manager",
+    "stepcrafter:green_step_requester_manager",
+    "stepcrafter:red_step_requester_manager",
+    "stepcrafter:black_step_requester_manager"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "parent": "refinedstorage:block/emissive_north_cutout",
+  "textures": {
+    "cutout": "stepcrafter:block/step_requester_manager/cutouts/red",
+    "down": "refinedstorage:block/bottom",
+    "east": "stepcrafter:block/step_requester_manager/right",
+    "north": "stepcrafter:block/step_requester_manager/front",
+    "particle": "stepcrafter:block/step_requester_manager/right",
+    "south": "stepcrafter:block/step_requester_manager/back",
+    "up": "stepcrafter:block/step_requester_manager/top",
+    "west": "stepcrafter:block/step_requester_manager/left"
+  }
+}
