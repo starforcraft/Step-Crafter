@@ -146,21 +146,18 @@ public class StepRequesterBlockEntity extends AbstractEditableNameBlockEntity<St
     @Override
     public void saveAdditional(final CompoundTag tag, final HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
-        tag.put(TAG_RESOURCE_FILTER, this.filterContainer.createTag(provider));
         tag.put(TAG_UPGRADES, ContainerUtil.write(this.upgradeContainer, provider));
     }
 
     @Override
     public void writeConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
         super.writeConfiguration(tag, provider);
+        tag.put(TAG_RESOURCE_FILTER, this.filterContainer.createTag(provider));
         tag.putBoolean(TAG_VISIBLE_TO_THE_STEP_REQUESTER_MANAGER, this.visibleToTheStepRequesterManager);
     }
 
     @Override
     public void loadAdditional(final CompoundTag tag, final HolderLookup.Provider provider) {
-        if (tag.contains(TAG_RESOURCE_FILTER)) {
-            this.filterContainer.fromTag(tag.getList(TAG_RESOURCE_FILTER, Tag.TAG_COMPOUND), provider);
-        }
         if (tag.contains(TAG_UPGRADES)) {
             ContainerUtil.read(tag.getCompound(TAG_UPGRADES), this.upgradeContainer, provider);
         }
@@ -170,6 +167,9 @@ public class StepRequesterBlockEntity extends AbstractEditableNameBlockEntity<St
     @Override
     public void readConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
         super.readConfiguration(tag, provider);
+        if (tag.contains(TAG_RESOURCE_FILTER)) {
+            this.filterContainer.fromTag(tag.getList(TAG_RESOURCE_FILTER, Tag.TAG_COMPOUND), provider);
+        }
         if (tag.contains(TAG_VISIBLE_TO_THE_STEP_REQUESTER_MANAGER)) {
             this.visibleToTheStepRequesterManager = tag.getBoolean(TAG_VISIBLE_TO_THE_STEP_REQUESTER_MANAGER);
         }

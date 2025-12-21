@@ -23,6 +23,7 @@ import com.refinedmods.refinedstorage.common.support.network.SimpleConnectionStr
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import net.minecraft.core.BlockPos;
@@ -184,6 +185,16 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         if (tag.contains(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER)) {
             this.visibleToTheStepCrafterManager = tag.getBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER);
         }
+    }
+
+    @Override
+    public List<ItemStack> getUpgrades() {
+        return this.upgradeContainer.getUpgrades();
+    }
+
+    @Override
+    public boolean addUpgrade(final ItemStack upgradeStack) {
+        return this.upgradeContainer.addUpgrade(upgradeStack);
     }
 
     @Override
