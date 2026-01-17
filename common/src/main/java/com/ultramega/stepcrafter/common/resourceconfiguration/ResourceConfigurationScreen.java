@@ -28,6 +28,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.Triple;
+import org.lwjgl.glfw.GLFW;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterIdentifier;
@@ -282,14 +283,25 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
         return true;
     }
 
-    private void tryConfirm(final boolean closeToParent) {
+    @Override
+    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ENTER && this.tryConfirm(true)) {
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    private boolean tryConfirm(final boolean closeToParent) {
         final Triple<Optional<Double>, Optional<Double>, Optional<Double>> amounts = this.getAndValidateAmount();
         if (amounts.getLeft().isPresent() && amounts.getMiddle().isPresent() && amounts.getRight().isPresent()
             && this.confirm(amounts.getLeft().get(), amounts.getMiddle().get(), amounts.getRight().get())) {
             if (closeToParent) {
                 this.tryCloseToParent();
             }
+            return true;
         }
+
+        return false;
     }
 
     @Override
