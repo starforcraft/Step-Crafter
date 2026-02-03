@@ -3,11 +3,13 @@ package com.ultramega.stepcrafter.common.stepcrafter;
 import com.ultramega.stepcrafter.common.Platform;
 import com.ultramega.stepcrafter.common.support.PatternMinMax;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
+import com.ultramega.stepcrafter.common.support.ResourceStatus;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink.Result;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.impl.node.SimpleNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNodeActor;
@@ -19,6 +21,7 @@ import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.common.api.storage.root.FuzzyRootStorage;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,30 +68,29 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
                 // this *shouldn't* be an issue
                 final ResourceKey resourceKey = pattern.pattern().layout().outputs().getFirst().resource();
                 final long stored = storageComponent.get(resourceKey);
-                final boolean crafting = resource.isCrafting();
-                if (!crafting && stored >= resource.minAmount()) {
+                final ResourceStatus status = resource.status();
+                if (status != ResourceStatus.CRAFTING && stored >= resource.minAmount()) {
                     break;
                 }
-                if (crafting && stored >= resource.maxAmount()) {
-                    patternResources.set(i, resource.toBuilder().isCrafting(false).build());
+                if (status == ResourceStatus.CRAFTING && stored >= resource.maxAmount()) {
+                    patternResources.set(i, resource.toBuilder().status(ResourceStatus.FINISHED).build());
                     break;
                 }
 
-                if (!this.craftOneItemNew(storageComponent, pattern.pattern())) {
-                    if (crafting) {
-                        patternResources.set(i, resource.toBuilder().isCrafting(false).build());
-                    }
+                final ResourceStatus result = this.craftOneItemNew(storageComponent, pattern.pattern());
+                if (result == ResourceStatus.NOT_ENOUGH_INGREDIENTS || result == ResourceStatus.NETWORK_FULL || result == ResourceStatus.EXTERNAL_CONTAINER_FULL) {
+                    patternResources.set(i, resource.toBuilder().status(result).build());
                     break;
                 } else {
-                    if (!crafting) {
-                        patternResources.set(i, resource.toBuilder().isCrafting(true).build());
+                    if (status != ResourceStatus.CRAFTING) {
+                        patternResources.set(i, resource.toBuilder().status(ResourceStatus.CRAFTING).build());
                     }
                 }
             }
         }
     }
 
-    private boolean craftOneItemNew(final StorageNetworkComponent storageComponent, final Pattern pattern) {
+    private ResourceStatus craftOneItemNew(final StorageNetworkComponent storageComponent, final Pattern pattern) {
         final List<Ingredient> uniqueIngredients = mergeIngredients(pattern.layout().ingredients());
         final Map<Ingredient, ResourceKey> resolvedInputs = new HashMap<>();
 
@@ -110,7 +112,7 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
             }
 
             if (!resolved) {
-                return false;
+                return ResourceStatus.NOT_ENOUGH_INGREDIENTS;
             }
         }
 
@@ -125,33 +127,42 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
             }
         }
 
-        // Check if all outputs can be inserted
-        for (final ResourceAmount resource : pattern.layout().outputs()) {
-            if (storageComponent.insert(resource.resource(), resource.amount(), Action.SIMULATE, this.actor) != resource.amount()) {
-                return false;
-            }
-        }
-
-        // Check if all byproducts can be inserted
+        final List<ResourceAmount> totalResources = new ArrayList<>(pattern.layout().outputs());
         for (final Map.Entry<Ingredient, ItemStack> entry : byproducts.entrySet()) {
-            if (storageComponent.insert(ItemResource.ofItemStack(entry.getValue()), entry.getValue().getCount(), Action.SIMULATE, this.actor)
-                != entry.getValue().getCount()) {
-                return false;
+            totalResources.add(new ResourceAmount(ItemResource.ofItemStack(entry.getValue()), entry.getValue().getCount()));
+        }
+        final Result result = this.blockEntity.accept(totalResources, Action.SIMULATE);
+        if (result == Result.SKIPPED) {
+            // No Sink (connected machine) so try to import into network
+
+            // Check if all outputs and byproducts can be inserted
+            for (final ResourceAmount resource : totalResources) {
+                if (storageComponent.insert(resource.resource(), resource.amount(), Action.SIMULATE, this.actor) != resource.amount()) {
+                    return ResourceStatus.NETWORK_FULL;
+                }
             }
-        }
 
-        // Success, execute operation
-        for (final Map.Entry<Ingredient, ResourceKey> entry : resolvedInputs.entrySet()) {
-            storageComponent.extract(entry.getValue(), entry.getKey().amount(), Action.EXECUTE, this.actor);
-        }
-        for (final ResourceAmount resource : pattern.layout().outputs()) {
-            storageComponent.insert(resource.resource(), resource.amount(), Action.EXECUTE, this.actor);
-        }
-        for (final Map.Entry<Ingredient, ItemStack> entry : byproducts.entrySet()) {
-            storageComponent.insert(ItemResource.ofItemStack(entry.getValue()), entry.getValue().getCount(), Action.EXECUTE, this.actor);
-        }
+            // Success, execute operation
+            for (final Map.Entry<Ingredient, ResourceKey> entry : resolvedInputs.entrySet()) {
+                storageComponent.extract(entry.getValue(), entry.getKey().amount(), Action.EXECUTE, this.actor);
+            }
+            for (final ResourceAmount resource : totalResources) {
+                storageComponent.insert(resource.resource(), resource.amount(), Action.EXECUTE, this.actor);
+            }
 
-        return true;
+            return ResourceStatus.FINISHED;
+        } else if (result == Result.ACCEPTED) {
+            // Has Sink (connected machine) and was accepted
+            for (final Map.Entry<Ingredient, ResourceKey> entry : resolvedInputs.entrySet()) {
+                storageComponent.extract(entry.getValue(), entry.getKey().amount(), Action.EXECUTE, this.actor);
+            }
+
+            this.blockEntity.accept(totalResources, Action.EXECUTE);
+
+            return ResourceStatus.FINISHED;
+        } else {
+            return ResourceStatus.EXTERNAL_CONTAINER_FULL;
+        }
     }
 
     private static List<Ingredient> mergeIngredients(final List<Ingredient> ingredients) {

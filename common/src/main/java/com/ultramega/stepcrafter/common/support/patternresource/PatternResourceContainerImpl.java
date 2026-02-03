@@ -1,6 +1,7 @@
 package com.ultramega.stepcrafter.common.support.patternresource;
 
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
+import com.ultramega.stepcrafter.common.support.ResourceStatus;
 
 import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
@@ -100,7 +101,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
     }
 
     public void setNewResource(final int index, final ResourceKey resourceKey) {
-        this.set(index, new ResourceMinMaxAmount(resourceKey, 0L, 0L, 1L, false));
+        this.set(index, new ResourceMinMaxAmount(resourceKey, 0L, 0L, 1L, ResourceStatus.FINISHED));
     }
 
     public void set(final int index, final ResourceMinMaxAmount resourceAmount) {
@@ -158,12 +159,12 @@ public class PatternResourceContainerImpl extends PatternInventory {
         return this.slots[index].batchSize();
     }
 
-    public boolean isCrafting(final int index) {
+    public ResourceStatus getStatus(final int index) {
         final ResourceMinMaxAmount slot = this.slots[index];
         if (slot == null) {
-            return false;
+            return ResourceStatus.FINISHED;
         }
-        return this.slots[index].isCrafting();
+        return this.slots[index].status();
     }
 
     @Nullable

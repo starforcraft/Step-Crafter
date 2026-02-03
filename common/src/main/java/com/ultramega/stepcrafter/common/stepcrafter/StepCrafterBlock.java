@@ -3,16 +3,19 @@ package com.ultramega.stepcrafter.common.stepcrafter;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
 
 import com.refinedmods.refinedstorage.common.content.BlockConstants;
-import com.refinedmods.refinedstorage.common.support.AbstractBaseBlock;
 import com.refinedmods.refinedstorage.common.support.AbstractBlockEntityTicker;
+import com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock;
 import com.refinedmods.refinedstorage.common.support.BaseBlockItem;
 import com.refinedmods.refinedstorage.common.support.BlockItemProvider;
 import com.refinedmods.refinedstorage.common.support.NetworkNodeBlockItem;
+import com.refinedmods.refinedstorage.common.support.direction.DefaultDirectionType;
+import com.refinedmods.refinedstorage.common.support.direction.DirectionType;
 import com.refinedmods.refinedstorage.common.support.network.NetworkNodeBlockEntityTicker;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.level.Level;
@@ -27,7 +30,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 
-public class StepCrafterBlock extends AbstractBaseBlock implements BlockItemProvider<BaseBlockItem>, EntityBlock {
+public class StepCrafterBlock extends AbstractDirectionalBlock<Direction> implements BlockItemProvider<BaseBlockItem>, EntityBlock {
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     private static final Component HELP = createStepCrafterTranslation("item", "step_crafter.help");
@@ -41,6 +44,11 @@ public class StepCrafterBlock extends AbstractBaseBlock implements BlockItemProv
     public StepCrafterBlock(final MutableComponent name) {
         super(BlockConstants.PROPERTIES);
         this.name = name;
+    }
+
+    @Override
+    protected DirectionType<Direction> getDirectionType() {
+        return DefaultDirectionType.FACE_CLICKED;
     }
 
     @Override

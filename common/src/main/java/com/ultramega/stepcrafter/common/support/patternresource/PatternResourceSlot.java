@@ -4,6 +4,7 @@ import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotAmountChan
 import com.ultramega.stepcrafter.common.packet.s2c.PatternResourceSlotUpdatePacket;
 import com.ultramega.stepcrafter.common.support.DisabledPatternResourceSlot;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
+import com.ultramega.stepcrafter.common.support.ResourceStatus;
 
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
@@ -116,8 +117,8 @@ public class PatternResourceSlot extends ValidatedSlot {
         return this.container.getBatchSize(this.getContainerSlot());
     }
 
-    public boolean isCrafting() {
-        return this.container.isCrafting(this.getContainerSlot());
+    public ResourceStatus getStatus() {
+        return this.container.getStatus(this.getContainerSlot());
     }
 
     public boolean contains(final ItemStack stack) {

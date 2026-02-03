@@ -12,21 +12,34 @@ import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceC
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink.Result;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkKey;
+import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.core.NullableType;
+import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
+import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.ExternalPatternSinkKeyProvider;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PlatformPatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternInventory;
 import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.AutocrafterData;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.InWorldExternalPatternSinkKey;
+import com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock;
 import com.refinedmods.refinedstorage.common.support.BlockEntityWithDrops;
 import com.refinedmods.refinedstorage.common.support.containermenu.ExtendedMenuProvider;
 import com.refinedmods.refinedstorage.common.support.network.SimpleConnectionStrategy;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -34,15 +47,21 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamEncoder;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import static com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock.tryExtractDirection;
+
 public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<StepCrafterNetworkNode>
-    implements ExtendedMenuProvider<StepCrafterData>, BlockEntityWithDrops, PatternInventory.Listener {
+    implements ExtendedMenuProvider<StepCrafterData>, BlockEntityWithDrops, PatternInventory.Listener,
+    PatternProviderExternalPatternSink, ExternalPatternSinkKeyProvider {
     static final int UPGRADES = 8;
     static final int PATTERNS = 9 * 5;
 
@@ -53,6 +72,11 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     private final PatternResourceContainerImpl patternResourceContainer;
     private final UpgradeContainer upgradeContainer;
     private boolean visibleToTheStepCrafterManager = true;
+
+    @Nullable
+    private PlatformPatternProviderExternalPatternSink sink;
+    @Nullable
+    private ExternalPatternSinkKey sinkKey;
 
     private int speed = 0;
     private int slotUpgradesCount = 0;
@@ -92,7 +116,7 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
             this,
             networkNode,
             "main",
-            new SimpleConnectionStrategy(this.getBlockPos()) //TODO: change this later when the step crafter should export into external inventories
+            new SimpleConnectionStrategy(this.getBlockPos())
         );
     }
 
@@ -135,6 +159,12 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         final Component customName = this.getCustomName();
         if (customName != null) {
             return customName;
+        }
+        final BlockEntity connectedMachine = this.getConnectedMachine();
+        if (connectedMachine instanceof Nameable nameable) {
+            return nameable.getName();
+        } else if (connectedMachine != null) {
+            return connectedMachine.getBlockState().getBlock().getName();
         }
         return ContentNames.STEP_CRAFTER;
     }
@@ -233,6 +263,16 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     }
 
     @Override
+    protected void initialize(final ServerLevel level, final Direction direction) {
+        super.initialize(level, direction);
+        final Direction incomingDirection = direction.getOpposite();
+        final BlockPos sourcePosition = this.worldPosition.relative(direction);
+        this.invalidateSinkKey();
+        this.sink = RefinedStorageApi.INSTANCE.getPatternProviderExternalPatternSinkFactory()
+            .create(level, sourcePosition, incomingDirection);
+    }
+
+    @Override
     public void patternChanged(final int slot) {
         if (this.level == null) {
             return;
@@ -246,5 +286,71 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
                 ? new PatternMinMax(pattern, resource.minAmount(), resource.maxAmount(), resource.batchSize())
                 : null
         );
+    }
+
+    @Override
+    protected boolean doesBlockStateChangeWarrantNetworkNodeUpdate(final BlockState oldBlockState,
+                                                                   final BlockState newBlockState) {
+        return AbstractDirectionalBlock.didDirectionChange(oldBlockState, newBlockState);
+    }
+
+    @Nullable
+    private BlockEntity getConnectedMachine() {
+        final Direction direction = tryExtractDirection(this.getBlockState());
+        if (this.level == null || direction == null) {
+            return null;
+        }
+        final BlockPos neighborPos = this.getBlockPos().relative(direction);
+        if (!this.level.isLoaded(neighborPos)) {
+            return null;
+        }
+        return this.level.getBlockEntity(neighborPos);
+    }
+
+    @Override
+    @Nullable
+    public ExternalPatternSinkKey getKey() {
+        if (this.sinkKey == null) {
+            this.tryUpdateSinkKey();
+        }
+        return this.sinkKey;
+    }
+
+    private void tryUpdateSinkKey() {
+        if (!(this.level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        final Direction direction = tryExtractDirection(this.getBlockState());
+        if (direction == null) {
+            return;
+        }
+        final BlockEntity connectedMachine = this.getConnectedMachine();
+        if (connectedMachine == null) {
+            this.invalidateSinkKey();
+            return;
+        }
+        final BlockState connectedMachineState = connectedMachine.getBlockState();
+        final Player fakePlayer = this.getFakePlayer(serverLevel);
+        final ItemStack connectedMachineStack = com.refinedmods.refinedstorage.common.Platform.INSTANCE.getBlockAsItemStack(
+            connectedMachineState.getBlock(),
+            connectedMachineState,
+            direction.getOpposite(),
+            serverLevel,
+            connectedMachine.getBlockPos(),
+            fakePlayer
+        );
+        this.sinkKey = new InWorldExternalPatternSinkKey(this.getName().getString(), connectedMachineStack);
+    }
+
+    private void invalidateSinkKey() {
+        this.sinkKey = null;
+    }
+
+    @Override
+    public Result accept(final Collection<ResourceAmount> resources, final Action action) {
+        if (this.sink == null) {
+            return ExternalPatternSink.Result.SKIPPED;
+        }
+        return this.sink.accept(resources, action);
     }
 }

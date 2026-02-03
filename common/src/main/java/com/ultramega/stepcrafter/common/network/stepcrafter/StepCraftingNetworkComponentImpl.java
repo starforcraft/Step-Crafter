@@ -4,6 +4,7 @@ import com.ultramega.stepcrafter.common.stepcrafter.StepCrafterProvider;
 import com.ultramega.stepcrafter.common.stepcrafter.StepCraftingParentContainer;
 import com.ultramega.stepcrafter.common.support.PatternMinMax;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
+import com.ultramega.stepcrafter.common.support.ResourceStatus;
 
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
@@ -49,7 +50,7 @@ public class StepCraftingNetworkComponentImpl implements StepCraftingNetworkComp
 
         this.patterns.add(pattern);
         pattern.pattern().layout().outputs().forEach(output ->
-            this.outputs.add(new ResourceMinMaxAmount(output.resource(), pattern.minAmount(), pattern.maxAmount(), 1L, false)));
+            this.outputs.add(new ResourceMinMaxAmount(output.resource(), pattern.minAmount(), pattern.maxAmount(), 1L, ResourceStatus.FINISHED)));
         for (final ResourceAmount output : pattern.pattern().layout().outputs()) {
             this.patternsByOutput.computeIfAbsent(output.resource(), k -> new PriorityQueue<>(
                 Comparator.comparingInt(PatternHolder::priority).reversed()

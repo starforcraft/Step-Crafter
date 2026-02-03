@@ -2,6 +2,7 @@ package com.ultramega.stepcrafter.common.steprequester;
 
 import com.ultramega.stepcrafter.common.mixin.AutocraftingNetworkComponentImplInvoker;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
+import com.ultramega.stepcrafter.common.support.ResourceStatus;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
@@ -46,11 +47,11 @@ public class StepRequesterNetworkNode extends SimpleNetworkNode {
 
             for (int j = 0; j < this.blockEntity.getSpeed() + 1; j++) {
                 final long stored = storageComponent.get(resource.resource());
-                if (!resource.isCrafting() && stored >= resource.minAmount()) {
+                if (resource.status() != ResourceStatus.CRAFTING && stored >= resource.minAmount()) {
                     break;
                 }
-                if (resource.isCrafting() && stored >= resource.maxAmount()) {
-                    filterContainer.set(i, resource.toBuilder().isCrafting(false).build());
+                if (resource.status() == ResourceStatus.CRAFTING && stored >= resource.maxAmount()) {
+                    filterContainer.set(i, resource.toBuilder().status(ResourceStatus.FINISHED).build());
                     break;
                 }
 
@@ -65,19 +66,17 @@ public class StepRequesterNetworkNode extends SimpleNetworkNode {
                     final Optional<TaskId> task = autocraftingComponent.startTask(resource.resource(), batchSize, this.actor, false, new TimeoutableCancellationToken());
                     this.runningTasks.put(i, task.orElse(null));
                     if (task.isEmpty()) {
-                        if (resource.isCrafting()) {
-                            filterContainer.set(i, resource.toBuilder().isCrafting(false).build());
-                        }
+                        filterContainer.set(i, resource.toBuilder().status(ResourceStatus.NOT_ENOUGH_INGREDIENTS).build());
                         break;
                     } else {
-                        if (!resource.isCrafting()) {
-                            filterContainer.set(i, resource.toBuilder().isCrafting(true).build());
+                        if (resource.status() != ResourceStatus.CRAFTING) {
+                            filterContainer.set(i, resource.toBuilder().status(ResourceStatus.CRAFTING).build());
                         }
                     }
                 } catch (final IllegalStateException ignored) {
                     // TODO: add cooldown if task couldn't be started
-                    if (resource.isCrafting()) {
-                        filterContainer.set(i, resource.toBuilder().isCrafting(false).build());
+                    if (resource.status() == ResourceStatus.CRAFTING) {
+                        filterContainer.set(i, resource.toBuilder().status(ResourceStatus.FINISHED).build());
                     }
                     this.runningTasks.remove(i);
                     break;

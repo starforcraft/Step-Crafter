@@ -14,7 +14,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long maxAmount, long batchSize, boolean isCrafting) {
+public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long maxAmount, long batchSize, ResourceStatus status) {
     public static final StreamCodec<RegistryFriendlyByteBuf, ResourceMinMaxAmount> STREAM_CODEC = StreamCodec.of(
         (buf, resourceAmount) -> {
             final ResourceKey resourceKey = resourceAmount.resource();
@@ -25,15 +25,15 @@ public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long ma
             buf.writeLong(resourceAmount.minAmount());
             buf.writeLong(resourceAmount.maxAmount());
             buf.writeLong(resourceAmount.batchSize());
-            buf.writeBoolean(resourceAmount.isCrafting());
+            buf.writeEnum(resourceAmount.status());
         },
         buf -> {
             final PlatformResourceKey resourceKey = ResourceCodecs.STREAM_CODEC.decode(buf);
             final long minAmount = buf.readLong();
             final long maxAmount = buf.readLong();
             final long batchSize = buf.readLong();
-            final boolean isCrafting = buf.readBoolean();
-            return new ResourceMinMaxAmount(resourceKey, minAmount, maxAmount, batchSize, isCrafting);
+            final ResourceStatus status = buf.readEnum(ResourceStatus.class);
+            return new ResourceMinMaxAmount(resourceKey, minAmount, maxAmount, batchSize, status);
         }
     );
     public static final StreamCodec<RegistryFriendlyByteBuf, Optional<ResourceMinMaxAmount>> STREAM_OPTIONAL_CODEC = ByteBufCodecs.optional(STREAM_CODEC);
@@ -43,7 +43,7 @@ public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long ma
         Codec.LONG.fieldOf("minAmount").forGetter(ResourceMinMaxAmount::minAmount),
         Codec.LONG.fieldOf("maxAmount").forGetter(ResourceMinMaxAmount::maxAmount),
         Codec.LONG.fieldOf("batchSize").forGetter(ResourceMinMaxAmount::batchSize),
-        Codec.BOOL.fieldOf("isCrafting").forGetter(ResourceMinMaxAmount::isCrafting)
+        ResourceStatus.CODEC.fieldOf("status").forGetter(ResourceMinMaxAmount::status)
     ).apply(instance, ResourceMinMaxAmount::new));
 
     /**
@@ -51,7 +51,7 @@ public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long ma
      * @param minAmount the minAmount, must be non-negative
      * @param maxAmount the maxAmount, must be non-negative
      * @param batchSize the batchSize, must be non-negative
-     * @param isCrafting if the resource is currently being crafted, needed for the min max functionality
+     * @param status if the resource is currently being crafted, needed for the min max functionality
      */
     public ResourceMinMaxAmount {
         validate(resource, minAmount, maxAmount, batchSize);
@@ -70,7 +70,7 @@ public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long ma
             .minAmount(this.minAmount)
             .maxAmount(this.maxAmount)
             .batchSize(this.batchSize)
-            .isCrafting(this.isCrafting);
+            .status(this.status);
     }
 
     public static final class Builder {
@@ -78,7 +78,7 @@ public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long ma
         private long minAmount;
         private long maxAmount;
         private long batchSize;
-        private boolean isCrafting;
+        private ResourceStatus status;
 
         private Builder() {
         }
@@ -103,8 +103,8 @@ public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long ma
             return this;
         }
 
-        public Builder isCrafting(final boolean newIsCrafting) {
-            this.isCrafting = newIsCrafting;
+        public Builder status(final ResourceStatus newStatus) {
+            this.status = newStatus;
             return this;
         }
 
@@ -114,7 +114,7 @@ public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long ma
                 this.minAmount,
                 this.maxAmount,
                 this.batchSize,
-                this.isCrafting
+                this.status
             );
         }
     }

@@ -29,30 +29,35 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 
-import static com.refinedmods.refinedstorage.common.support.Sprites.AUTOCRAFTING_INDICATOR;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslationAsHeading;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterIdentifier;
+import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslationAsHeading;
 
 public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu> extends AbstractBaseScreen<T> {
+    public static final ResourceLocation FINISHED_INDICATOR = createStepCrafterIdentifier("finished");
+    public static final MutableComponent FINISHED_INDICATOR_TOOLTIP = createStepCrafterTranslation("gui", "filter_slot.finished");
+    public static final MutableComponent CRAFTING_INDICATOR_TOOLTIP = createStepCrafterTranslation("gui", "filter_slot.crafting");
+    public static final MutableComponent NOT_ENOUGH_INGREDIENTS_INDICATOR_TOOLTIP = createStepCrafterTranslation("gui", "filter_slot.not_enough_ingredients");
+    public static final MutableComponent NETWORK_FULL_INDICATOR_TOOLTIP = createStepCrafterTranslation("gui", "filter_slot.network_full");
+    public static final MutableComponent EXTERNAL_CONTAINER_FULL_INDICATOR_TOOLTIP = createStepCrafterTranslation("gui", "filter_slot.external_container_full");
+
     private static final SmallTextClientTooltipComponent SHIFT_CLICK_TO_CLEAR = new SmallTextClientTooltipComponent(
-        createTranslationAsHeading("gui", "filter_slot.shift_click_to_clear")
-    );
+        createTranslationAsHeading("gui", "filter_slot.shift_click_to_clear"));
     private static final Component SHIFT_CLICK_TO_CONFIGURE_AMOUNT =
         createStepCrafterTranslationAsHeading("gui", "filter_slot.shift_click_to_configure_amount");
     private static final Component CLICK_TO_CONFIGURE_AMOUNT =
         createTranslationAsHeading("gui", "filter_slot.click_to_configure_amount");
     private static final ClientTooltipComponent EMPTY_FILTER = ClientTooltipComponent.create(
-        createTranslationAsHeading("gui", "filter_slot.empty_filter").getVisualOrderText()
-    );
+        createTranslationAsHeading("gui", "filter_slot.empty_filter").getVisualOrderText());
     private static final ClientTooltipComponent EMPTY_PATTERN_SLOT = ClientTooltipComponent.create(
-        createTranslationAsHeading("gui", "autocrafter.empty_pattern_slot").getVisualOrderText()
-    );
+        createTranslationAsHeading("gui", "autocrafter.empty_pattern_slot").getVisualOrderText());
 
     private static final ResourceLocation TEXTURE_0 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_0.png");
     private static final ResourceLocation TEXTURE_1 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_1.png");
@@ -117,9 +122,8 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
             }
             graphics.drawString(font, formattedMaxAmount, 0, 24, 0xFFFFFF);
 
-            if (slot.isCrafting()) {
-                graphics.blitSprite(AUTOCRAFTING_INDICATOR, 22, -2, 10, 10);
-            }
+            graphics.blitSprite(slot.getStatus().getIcon(), 22, -2, 10, 10);
+
             poseStack.popPose();
         }
     }
@@ -168,7 +172,13 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
     @Override
     protected void renderTooltip(final GuiGraphics graphics, final int x, final int y) {
         if (this.hoveredSlot instanceof PatternResourceSlot patternSlot) {
-            final List<ClientTooltipComponent> tooltip = this.getPatternResourceSlotTooltip(this.menu.getCarried(), patternSlot);
+            final List<ClientTooltipComponent> tooltip;
+            if (!patternSlot.isEmpty() && this.isHovering(patternSlot.x + 12, patternSlot.y - 7, 10, 10, x, y)) {
+                tooltip = patternSlot.getStatus().getTooltip();
+            } else {
+                tooltip = this.getPatternResourceSlotTooltip(this.menu.getCarried(), patternSlot);
+            }
+
             if (!tooltip.isEmpty()) {
                 Platform.INSTANCE.renderTooltip(graphics, tooltip, x, y);
                 return;

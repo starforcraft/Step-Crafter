@@ -1,10 +1,56 @@
 {
   "variants": {
-    "active=false": {
+    "active=false,direction=down": {
+      "model": "stepcrafter:block/step_crafter/inactive",
+      "x": 180
+    },
+    "active=false,direction=east": {
+      "model": "stepcrafter:block/step_crafter/inactive",
+      "x": 90,
+      "y": 90
+    },
+    "active=false,direction=north": {
+      "model": "stepcrafter:block/step_crafter/inactive",
+      "x": 90
+    },
+    "active=false,direction=south": {
+      "model": "stepcrafter:block/step_crafter/inactive",
+      "x": 90,
+      "y": 180
+    },
+    "active=false,direction=up": {
       "model": "stepcrafter:block/step_crafter/inactive"
     },
-    "active=true": {
+    "active=false,direction=west": {
+      "model": "stepcrafter:block/step_crafter/inactive",
+      "x": 90,
+      "y": 270
+    },
+    "active=true,direction=down": {
+      "model": "stepcrafter:block/step_crafter/active",
+      "x": 180
+    },
+    "active=true,direction=east": {
+      "model": "stepcrafter:block/step_crafter/active",
+      "x": 90,
+      "y": 90
+    },
+    "active=true,direction=north": {
+      "model": "stepcrafter:block/step_crafter/active",
+      "x": 90
+    },
+    "active=true,direction=south": {
+      "model": "stepcrafter:block/step_crafter/active",
+      "x": 90,
+      "y": 180
+    },
+    "active=true,direction=up": {
       "model": "stepcrafter:block/step_crafter/active"
+    },
+    "active=true,direction=west": {
+      "model": "stepcrafter:block/step_crafter/active",
+      "x": 90,
+      "y": 270
     }
   }
 }

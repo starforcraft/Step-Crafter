@@ -33,7 +33,6 @@ public class StepCrafterScreen extends AbstractEditableNameScreen<StepCrafterCon
         ));
 
         // TODO: add a side button about redstone pulse (either request all items or only based on the strength)
-        //  also show "not enough ingredients", "crafting" or "checkmark" icon in a corner
     }
 
     @Override
