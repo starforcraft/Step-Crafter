@@ -1,0 +1,13 @@
+{
+  "parent": "refinedstorage:block/emissive_north_cutout",
+  "textures": {
+    "cutout": "stepcrafter:block/step_crafting_monitor/cutouts/cyan",
+    "down": "refinedstorage:block/bottom",
+    "east": "stepcrafter:block/step_crafting_monitor/right",
+    "north": "stepcrafter:block/step_crafting_monitor/front",
+    "particle": "stepcrafter:block/step_crafting_monitor/right",
+    "south": "stepcrafter:block/step_crafting_monitor/back",
+    "up": "stepcrafter:block/step_crafting_monitor/top",
+    "west": "stepcrafter:block/step_crafting_monitor/left"
+  }
+}

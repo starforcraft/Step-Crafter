@@ -8,6 +8,7 @@ import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createS
 
 public final class Tags {
     public static final TagKey<Item> STEP_CRAFTER_MANAGERS = createTag("step_crafter_managers");
+    public static final TagKey<Item> STEP_CRAFTING_MONITORS = createTag("step_crafting_monitors");
     public static final TagKey<Item> STEP_REQUESTER_MANAGERS = createTag("step_requester_managers");
 
     private Tags() {

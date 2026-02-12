@@ -1,7 +1,7 @@
 package com.ultramega.stepcrafter.common.stepmanager;
 
 import com.ultramega.stepcrafter.common.packet.s2c.StepManagerActivePacket;
-import com.ultramega.stepcrafter.common.stepcraftermanager.StepCrafterManagerContainerMenu;
+import com.ultramega.stepcrafter.common.stepcrafter.manager.StepCrafterManagerContainerMenu;
 import com.ultramega.stepcrafter.common.support.AbstractPatternResourceContainerMenu;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;

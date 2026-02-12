@@ -17,6 +17,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.MOD_ID;
 import static com.ultramega.stepcrafter.common.registry.Tags.STEP_CRAFTER_MANAGERS;
+import static com.ultramega.stepcrafter.common.registry.Tags.STEP_CRAFTING_MONITORS;
 import static com.ultramega.stepcrafter.common.registry.Tags.STEP_REQUESTER_MANAGERS;
 
 public class ItemTagsProviderImpl extends ItemTagsProvider {
@@ -31,6 +32,10 @@ public class ItemTagsProviderImpl extends ItemTagsProvider {
     protected void addTags(final Provider provider) {
         this.addAllToTag(STEP_CRAFTER_MANAGERS,
             Blocks.INSTANCE.getStepCrafterManager().values().stream()
+                .map(block -> (Supplier<Item>) block::asItem)
+                .toList());
+        this.addAllToTag(STEP_CRAFTING_MONITORS,
+            Blocks.INSTANCE.getStepCraftingMonitor().values().stream()
                 .map(block -> (Supplier<Item>) block::asItem)
                 .toList());
         this.addAllToTag(STEP_REQUESTER_MANAGERS,

@@ -25,6 +25,8 @@ public class ConfigImpl implements ConfigData, com.ultramega.stepcrafter.common.
     @ConfigEntry.Gui.CollapsibleObject
     private StepManagerEntry stepCrafterManager = new StepManagerEntryImpl(DefaultConfig.STEP_CRAFTER_MANAGER_ENERGY_USAGE);
     @ConfigEntry.Gui.CollapsibleObject
+    private StepManagerEntry stepCraftingMonitor = new StepManagerEntryImpl(DefaultConfig.STEP_CRAFTING_MONITOR_ENERGY_USAGE);
+    @ConfigEntry.Gui.CollapsibleObject
     private StepManagerEntry stepRequesterManager = new StepManagerEntryImpl(DefaultConfig.STEP_REQUESTER_MANAGER_ENERGY_USAGE);
     @ConfigEntry.Gui.CollapsibleObject
     private SimpleEnergyUsageEntry slotUpgrade = new SimpleEnergyUsageEntryImpl(DefaultConfig.SLOT_UPGRADE_ENERGY_USAGE);
@@ -46,6 +48,11 @@ public class ConfigImpl implements ConfigData, com.ultramega.stepcrafter.common.
     @Override
     public StepManagerEntry getStepCrafterManager() {
         return this.stepCrafterManager;
+    }
+
+    @Override
+    public StepManagerEntry getStepCraftingMonitor() {
+        return this.stepCraftingMonitor;
     }
 
     @Override

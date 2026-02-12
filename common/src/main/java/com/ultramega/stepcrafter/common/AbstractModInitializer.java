@@ -1,7 +1,7 @@
 package com.ultramega.stepcrafter.common;
 
+import com.ultramega.stepcrafter.common.network.stepcrafter.PlatformStepCraftingNetworkComponent;
 import com.ultramega.stepcrafter.common.network.stepcrafter.StepCraftingNetworkComponent;
-import com.ultramega.stepcrafter.common.network.stepcrafter.StepCraftingNetworkComponentImpl;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
 import com.ultramega.stepcrafter.common.registry.Blocks;
 import com.ultramega.stepcrafter.common.registry.Items;
@@ -10,15 +10,19 @@ import com.ultramega.stepcrafter.common.stepcrafter.StepCrafterBlock;
 import com.ultramega.stepcrafter.common.stepcrafter.StepCrafterBlockEntity;
 import com.ultramega.stepcrafter.common.stepcrafter.StepCrafterContainerMenu;
 import com.ultramega.stepcrafter.common.stepcrafter.StepCrafterData;
-import com.ultramega.stepcrafter.common.stepcraftermanager.StepCrafterManagerBlockEntity;
-import com.ultramega.stepcrafter.common.stepcraftermanager.StepCrafterManagerContainerMenu;
+import com.ultramega.stepcrafter.common.stepcrafter.manager.StepCrafterManagerBlockEntity;
+import com.ultramega.stepcrafter.common.stepcrafter.manager.StepCrafterManagerContainerMenu;
+import com.ultramega.stepcrafter.common.stepcrafter.preview.StepCraftingPreviewContainerMenu;
+import com.ultramega.stepcrafter.common.stepcrafter.stepcraftingmonitor.StepCraftingMonitorBlockEntity;
+import com.ultramega.stepcrafter.common.stepcrafter.stepcraftingmonitor.StepCraftingMonitorContainerMenu;
+import com.ultramega.stepcrafter.common.stepcrafter.stepcraftingmonitor.StepCraftingMonitorData;
 import com.ultramega.stepcrafter.common.stepmanager.StepManagerData;
 import com.ultramega.stepcrafter.common.steprequester.StepRequesterBlock;
 import com.ultramega.stepcrafter.common.steprequester.StepRequesterBlockEntity;
 import com.ultramega.stepcrafter.common.steprequester.StepRequesterContainerMenu;
 import com.ultramega.stepcrafter.common.steprequester.StepRequesterData;
-import com.ultramega.stepcrafter.common.steprequestermanager.StepRequesterManagerBlockEntity;
-import com.ultramega.stepcrafter.common.steprequestermanager.StepRequesterManagerContainerMenu;
+import com.ultramega.stepcrafter.common.steprequester.manager.StepRequesterManagerBlockEntity;
+import com.ultramega.stepcrafter.common.steprequester.manager.StepRequesterManagerContainerMenu;
 import com.ultramega.stepcrafter.common.upgrade.SimpleUpgradeItem;
 
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
@@ -26,6 +30,7 @@ import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
 import com.refinedmods.refinedstorage.common.content.BlockEntityTypeFactory;
 import com.refinedmods.refinedstorage.common.content.ExtendedMenuTypeFactory;
 import com.refinedmods.refinedstorage.common.content.RegistryCallback;
+import com.refinedmods.refinedstorage.common.support.resource.ResourceCodecs;
 
 import java.util.function.Supplier;
 
@@ -43,6 +48,7 @@ public abstract class AbstractModInitializer {
         Blocks.INSTANCE.setStepCrafter(callback.register(ContentIds.STEP_CRAFTER, () -> new StepCrafterBlock(ContentNames.STEP_CRAFTER)));
         Blocks.INSTANCE.setStepRequester(callback.register(ContentIds.STEP_REQUESTER, () -> new StepRequesterBlock(ContentNames.STEP_REQUESTER)));
         Blocks.INSTANCE.getStepCrafterManager().registerBlocks(callback);
+        Blocks.INSTANCE.getStepCraftingMonitor().registerBlocks(callback);
         Blocks.INSTANCE.getStepRequesterManager().registerBlocks(callback);
     }
 
@@ -50,6 +56,7 @@ public abstract class AbstractModInitializer {
         callback.register(ContentIds.STEP_CRAFTER, () -> Blocks.INSTANCE.getStepCrafter().createBlockItem());
         callback.register(ContentIds.STEP_REQUESTER, () -> Blocks.INSTANCE.getStepRequester().createBlockItem());
         Blocks.INSTANCE.getStepCrafterManager().registerItems(callback, Items.INSTANCE::addStepCrafterManager);
+        Blocks.INSTANCE.getStepCraftingMonitor().registerItems(callback, Items.INSTANCE::addStepCrafterManager);
         Blocks.INSTANCE.getStepRequesterManager().registerItems(callback, Items.INSTANCE::addStepRequesterManager);
         this.registerUpgrades(callback);
     }
@@ -68,6 +75,11 @@ public abstract class AbstractModInitializer {
             ContentIds.STEP_CRAFTER_MANAGER,
             () -> typeFactory.create(StepCrafterManagerBlockEntity::new,
                 Blocks.INSTANCE.getStepCrafterManager().toArray())
+        ));
+        BlockEntities.INSTANCE.setStepCraftingMonitor(callback.register(
+            ContentIds.STEP_CRAFTING_MONITOR,
+            () -> typeFactory.create(StepCraftingMonitorBlockEntity::new,
+                Blocks.INSTANCE.getStepCraftingMonitor().toArray())
         ));
         BlockEntities.INSTANCE.setStepRequesterManager(callback.register(
             ContentIds.STEP_REQUESTER_MANAGER,
@@ -93,6 +105,13 @@ public abstract class AbstractModInitializer {
                 StepManagerData.STREAM_CODEC
             )
         ));
+        Menus.INSTANCE.setStepCraftingMonitor(callback.register(
+            ContentIds.STEP_CRAFTING_MONITOR,
+            () -> extendedMenuTypeFactory.create(
+                StepCraftingMonitorContainerMenu::new,
+                StepCraftingMonitorData.STREAM_CODEC
+            )
+        ));
         Menus.INSTANCE.setStepRequesterManager(callback.register(
             ContentIds.STEP_REQUESTER_MANAGER,
             () -> extendedMenuTypeFactory.create(
@@ -100,12 +119,19 @@ public abstract class AbstractModInitializer {
                 StepManagerData.STREAM_CODEC
             )
         ));
+        Menus.INSTANCE.setStepCraftingPreview(callback.register(
+            ContentIds.STEP_CRAFTING_PREVIEW,
+            () -> extendedMenuTypeFactory.create(
+                (syncId, playerInventory, data) -> new StepCraftingPreviewContainerMenu(syncId, data),
+                ResourceCodecs.STREAM_CODEC
+            )
+        ));
     }
 
     private void registerNetworkComponents() {
         RefinedStorageApi.INSTANCE.getNetworkComponentMapFactory().addFactory(
             StepCraftingNetworkComponent.class,
-            network -> new StepCraftingNetworkComponentImpl()
+            network -> new PlatformStepCraftingNetworkComponent()
         );
     }
 

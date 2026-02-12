@@ -1,7 +1,7 @@
 package com.ultramega.stepcrafter.common.compat.jei;
 
 import com.ultramega.stepcrafter.common.steprequester.StepRequesterScreen;
-import com.ultramega.stepcrafter.common.steprequestermanager.StepRequesterManagerScreen;
+import com.ultramega.stepcrafter.common.steprequester.manager.StepRequesterManagerScreen;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;

@@ -19,6 +19,10 @@ public final class StepCrafterIdentifierUtil {
         return Component.translatable(createStepCrafterTranslationKey(category, value));
     }
 
+    public static MutableComponent createStepCrafterTranslation(final String category, final String value, final Object... args) {
+        return Component.translatable(createStepCrafterTranslationKey(category, value), args);
+    }
+
     public static String createStepCrafterTranslationKey(final String category, final String value) {
         return String.format("%s.%s.%s", category, MOD_ID, value);
     }

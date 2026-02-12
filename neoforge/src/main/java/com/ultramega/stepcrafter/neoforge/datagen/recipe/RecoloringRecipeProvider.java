@@ -29,6 +29,9 @@ public class RecoloringRecipeProvider extends RecipeProvider {
         Blocks.INSTANCE.getStepCrafterManager().forEach((color, id, block) ->
             this.recipe(Tags.STEP_CRAFTER_MANAGERS, block.get().asItem(), color)
                 .save(output, this.recipeId(color, "step_crafter_manager")));
+        Blocks.INSTANCE.getStepCraftingMonitor().forEach((color, id, block) ->
+            this.recipe(Tags.STEP_CRAFTING_MONITORS, block.get().asItem(), color)
+                .save(output, this.recipeId(color, "step_crafting_monitor")));
         Blocks.INSTANCE.getStepRequesterManager().forEach((color, id, block) ->
             this.recipe(Tags.STEP_REQUESTER_MANAGERS, block.get().asItem(), color)
                 .save(output, this.recipeId(color, "step_requester_manager")));

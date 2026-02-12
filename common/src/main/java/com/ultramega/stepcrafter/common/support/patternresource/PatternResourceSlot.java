@@ -81,6 +81,12 @@ public class PatternResourceSlot extends ValidatedSlot {
         return true;
     }
 
+    @Override
+    public void set(final ItemStack stack) {
+        super.set(stack);
+        this.container.changed(this.getContainerSlot());
+    }
+
     public void changeAmount(final long minAmount, final long maxAmount, final long batchSize) {
         this.container.setMinAmount(this.getContainerSlot(), minAmount);
         this.container.setMaxAmount(this.getContainerSlot(), maxAmount);

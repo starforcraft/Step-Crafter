@@ -6,9 +6,16 @@ import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceFilterSlotChan
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotAmountChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.RequestMaintainableResourcesPacket;
+import com.ultramega.stepcrafter.common.packet.c2s.StepCraftingMonitorCancelAllPacket;
+import com.ultramega.stepcrafter.common.packet.c2s.StepCraftingMonitorCancelPacket;
+import com.ultramega.stepcrafter.common.packet.c2s.StepCraftingRequestPacket;
 import com.ultramega.stepcrafter.common.packet.c2s.StepNameChangePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.PatternResourceSlotUpdatePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.SetMaintainableResourcesPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorActivePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskAddedPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskRemovedPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskStatusChangedPacket;
 import com.ultramega.stepcrafter.common.packet.s2c.StepManagerActivePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.StepNameUpdatePacket;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
@@ -109,11 +116,18 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
         PayloadTypeRegistry.playC2S().register(PatternResourceFilterSlotChangePacket.PACKET_TYPE, PatternResourceFilterSlotChangePacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RequestMaintainableResourcesPacket.PACKET_TYPE, RequestMaintainableResourcesPacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(StepNameChangePacket.PACKET_TYPE, StepNameChangePacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(StepCraftingRequestPacket.PACKET_TYPE, StepCraftingRequestPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(StepCraftingMonitorCancelPacket.PACKET_TYPE, StepCraftingMonitorCancelPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(StepCraftingMonitorCancelAllPacket.PACKET_TYPE, StepCraftingMonitorCancelAllPacket.STREAM_CODEC);
 
         PayloadTypeRegistry.playS2C().register(PatternResourceSlotUpdatePacket.PACKET_TYPE, PatternResourceSlotUpdatePacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(SetMaintainableResourcesPacket.PACKET_TYPE, SetMaintainableResourcesPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(StepNameUpdatePacket.PACKET_TYPE, StepNameUpdatePacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(StepManagerActivePacket.PACKET_TYPE, StepManagerActivePacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(StepCraftingMonitorTaskStatusChangedPacket.PACKET_TYPE, StepCraftingMonitorTaskStatusChangedPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(StepCraftingMonitorTaskRemovedPacket.PACKET_TYPE, StepCraftingMonitorTaskRemovedPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(StepCraftingMonitorTaskAddedPacket.PACKET_TYPE, StepCraftingMonitorTaskAddedPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(StepCraftingMonitorActivePacket.PACKET_TYPE, StepCraftingMonitorActivePacket.STREAM_CODEC);
     }
 
     private void registerPacketHandlers() {
@@ -136,6 +150,18 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
         ServerPlayNetworking.registerGlobalReceiver(
             StepNameChangePacket.PACKET_TYPE,
             wrapHandler(StepNameChangePacket::handle)
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+            StepCraftingRequestPacket.PACKET_TYPE,
+            wrapHandler(StepCraftingRequestPacket::handle)
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+            StepCraftingMonitorCancelPacket.PACKET_TYPE,
+            wrapHandler(StepCraftingMonitorCancelPacket::handle)
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+            StepCraftingMonitorCancelAllPacket.PACKET_TYPE,
+            wrapHandler((packet, ctx) -> StepCraftingMonitorCancelAllPacket.handle(ctx))
         );
     }
 

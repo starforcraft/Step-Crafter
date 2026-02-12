@@ -5,6 +5,9 @@ import com.ultramega.stepcrafter.common.Platform;
 import com.ultramega.stepcrafter.common.UpgradeDestinations;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
 import com.ultramega.stepcrafter.common.registry.Items;
+import com.ultramega.stepcrafter.common.stepcrafter.task.StepTask;
+import com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskImpl;
+import com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskSnapshot;
 import com.ultramega.stepcrafter.common.support.AbstractEditableNameBlockEntity;
 import com.ultramega.stepcrafter.common.support.PatternMinMax;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
@@ -43,6 +46,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -56,8 +60,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock.tryExtractDirection;
+import static com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskSnapshotPersistence.decodeSnapshot;
+import static com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskSnapshotPersistence.encodeSnapshot;
 
 public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<StepCrafterNetworkNode>
     implements ExtendedMenuProvider<StepCrafterData>, BlockEntityWithDrops, PatternInventory.Listener,
@@ -65,8 +73,12 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     static final int UPGRADES = 8;
     static final int PATTERNS = 9 * 5;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(StepCrafterBlockEntity.class);
+
     private static final String TAG_UPGRADES = "upgr";
     private static final String TAG_PATTERNS = "patterns";
+    private static final String TAG_PRIORITY = "pri";
+    private static final String TAG_TASKS = "tasks";
     private static final String TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER = "vstm";
 
     private final PatternResourceContainerImpl patternResourceContainer;
@@ -190,11 +202,23 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         super.saveAdditional(tag, provider);
         tag.put(TAG_PATTERNS, this.patternResourceContainer.createTag(provider));
         tag.put(TAG_UPGRADES, ContainerUtil.write(this.upgradeContainer, provider));
+        final ListTag tasks = new ListTag();
+        for (final StepTask task : this.mainNetworkNode.getTasks()) {
+            if (task instanceof StepTaskImpl taskImpl) {
+                try {
+                    tasks.add(encodeSnapshot(taskImpl.createSnapshot()));
+                } catch (final Exception e) {
+                    LOGGER.error("Error while saving step task {} {}", task.getResource(), task.getAmount(), e);
+                }
+            }
+        }
+        tag.put(TAG_TASKS, tasks);
     }
 
     @Override
     public void writeConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
         super.writeConfiguration(tag, provider);
+        tag.putInt(TAG_PRIORITY, this.mainNetworkNode.getPriority());
         tag.putBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER, this.visibleToTheStepCrafterManager);
     }
 
@@ -206,12 +230,27 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         if (tag.contains(TAG_UPGRADES)) {
             ContainerUtil.read(tag.getCompound(TAG_UPGRADES), this.upgradeContainer, provider);
         }
+        if (tag.contains(TAG_TASKS)) {
+            final ListTag tasks = tag.getList(TAG_TASKS, Tag.TAG_COMPOUND);
+            for (int i = 0; i < tasks.size(); ++i) {
+                final CompoundTag taskTag = tasks.getCompound(i);
+                try {
+                    final StepTaskSnapshot snapshot = decodeSnapshot(taskTag);
+                    this.mainNetworkNode.addTask(new StepTaskImpl(snapshot));
+                } catch (final Exception e) {
+                    LOGGER.error("Error while loading step task, skipping", e);
+                }
+            }
+        }
         super.loadAdditional(tag, provider);
     }
 
     @Override
     public void readConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
         super.readConfiguration(tag, provider);
+        if (tag.contains(TAG_PRIORITY)) {
+            this.mainNetworkNode.setPriority(tag.getInt(TAG_PRIORITY));
+        }
         if (tag.contains(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER)) {
             this.visibleToTheStepCrafterManager = tag.getBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER);
         }
@@ -240,6 +279,15 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     private void onPatternResourcesChange(final int index) {
         this.setChanged();
         this.patternChanged(index);
+    }
+
+    int getPriority() {
+        return this.mainNetworkNode.getPriority();
+    }
+
+    void setPriority(final int priority) {
+        this.mainNetworkNode.setPriority(priority);
+        this.setChanged();
     }
 
     boolean isVisibleToTheStepCrafterManager() {

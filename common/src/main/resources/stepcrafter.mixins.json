@@ -13,10 +13,12 @@
     "MixinWirelessCraftingGrid",
     "AbstractGridResourceInvoker",
     "AutocraftingNetworkComponentImplInvoker",
-    "AutocrafterManagerViewTypeInvoker"
+    "AutocrafterManagerViewTypeInvoker",
+    "AutocraftingRequestInvoker"
   ],
   "client": [
     "MixinAbstractGridScreen",
+    "MixinClientPlatformUtil",
     "ActionButtonInvoker"
   ]
 }

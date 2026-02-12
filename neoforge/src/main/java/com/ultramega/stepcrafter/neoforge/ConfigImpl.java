@@ -21,6 +21,7 @@ public class ConfigImpl implements Config {
     private final SimpleEnergySpeedUsageEntry stepCrafter;
     private final SimpleEnergyUsageEntry stepRequester;
     private final StepManagerEntry stepCrafterManager;
+    private final SimpleEnergyUsageEntry stepCraftingMonitor;
     private final StepManagerEntry stepRequesterManager;
     private final SimpleEnergyUsageEntry slotUpgrade;
 
@@ -28,6 +29,7 @@ public class ConfigImpl implements Config {
         this.stepCrafter = new SimpleEnergySpeedUsageEntryImpl("stepCrafter", DefaultConfig.STEP_CRAFTER_ENERGY_USAGE, DefaultConfig.STEP_CRAFTER_SPEED_MULTIPLIER);
         this.stepRequester = new SimpleEnergyUsageEntryImpl("stepRequester", DefaultConfig.STEP_REQUESTER_ENERGY_USAGE);
         this.stepCrafterManager = new StepManagerEntryImpl("stepCrafterManager", DefaultConfig.STEP_CRAFTER_MANAGER_ENERGY_USAGE);
+        this.stepCraftingMonitor = new SimpleEnergyUsageEntryImpl("stepCraftingMonitor", DefaultConfig.STEP_CRAFTING_MONITOR_ENERGY_USAGE);
         this.stepRequesterManager = new StepManagerEntryImpl("stepRequesterManager", DefaultConfig.STEP_REQUESTER_MANAGER_ENERGY_USAGE);
         this.slotUpgrade = new SimpleEnergyUsageEntryImpl("slotUpgrade", DefaultConfig.SLOT_UPGRADE_ENERGY_USAGE);
         this.spec = this.builder.build();
@@ -50,6 +52,11 @@ public class ConfigImpl implements Config {
     @Override
     public StepManagerEntry getStepCrafterManager() {
         return this.stepCrafterManager;
+    }
+
+    @Override
+    public SimpleEnergyUsageEntry getStepCraftingMonitor() {
+        return this.stepCraftingMonitor;
     }
 
     @Override

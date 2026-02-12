@@ -34,6 +34,7 @@ public class BlockTagsProvider extends TagsProvider<Block> {
         this.markAsMineable(Blocks.INSTANCE.getStepCrafter());
         this.markAsMineable(Blocks.INSTANCE.getStepRequester());
         this.markAsMineable(Blocks.INSTANCE.getStepCrafterManager());
+        this.markAsMineable(Blocks.INSTANCE.getStepCraftingMonitor());
         this.markAsMineable(Blocks.INSTANCE.getStepRequesterManager());
     }
 

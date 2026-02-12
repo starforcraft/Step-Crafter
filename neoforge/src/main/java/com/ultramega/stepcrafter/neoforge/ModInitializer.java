@@ -6,9 +6,16 @@ import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceFilterSlotChan
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotAmountChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.RequestMaintainableResourcesPacket;
+import com.ultramega.stepcrafter.common.packet.c2s.StepCraftingMonitorCancelAllPacket;
+import com.ultramega.stepcrafter.common.packet.c2s.StepCraftingMonitorCancelPacket;
+import com.ultramega.stepcrafter.common.packet.c2s.StepCraftingRequestPacket;
 import com.ultramega.stepcrafter.common.packet.c2s.StepNameChangePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.PatternResourceSlotUpdatePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.SetMaintainableResourcesPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorActivePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskAddedPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskRemovedPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskStatusChangedPacket;
 import com.ultramega.stepcrafter.common.packet.s2c.StepManagerActivePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.StepNameUpdatePacket;
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
@@ -171,6 +178,21 @@ public class ModInitializer extends AbstractModInitializer {
             StepNameChangePacket.STREAM_CODEC,
             wrapHandler(StepNameChangePacket::handle)
         );
+        registrar.playToServer(
+            StepCraftingRequestPacket.PACKET_TYPE,
+            StepCraftingRequestPacket.STREAM_CODEC,
+            wrapHandler(StepCraftingRequestPacket::handle)
+        );
+        registrar.playToServer(
+            StepCraftingMonitorCancelPacket.PACKET_TYPE,
+            StepCraftingMonitorCancelPacket.STREAM_CODEC,
+            wrapHandler(StepCraftingMonitorCancelPacket::handle)
+        );
+        registrar.playToServer(
+            StepCraftingMonitorCancelAllPacket.PACKET_TYPE,
+            StepCraftingMonitorCancelAllPacket.STREAM_CODEC,
+            wrapHandler((packet, ctx) -> StepCraftingMonitorCancelAllPacket.handle(ctx))
+        );
 
         registrar.playToClient(
             PatternResourceSlotUpdatePacket.PACKET_TYPE,
@@ -191,6 +213,26 @@ public class ModInitializer extends AbstractModInitializer {
             StepManagerActivePacket.PACKET_TYPE,
             StepManagerActivePacket.STREAM_CODEC,
             wrapHandler(StepManagerActivePacket::handle)
+        );
+        registrar.playToClient(
+            StepCraftingMonitorTaskStatusChangedPacket.PACKET_TYPE,
+            StepCraftingMonitorTaskStatusChangedPacket.STREAM_CODEC,
+            wrapHandler(StepCraftingMonitorTaskStatusChangedPacket::handle)
+        );
+        registrar.playToClient(
+            StepCraftingMonitorTaskRemovedPacket.PACKET_TYPE,
+            StepCraftingMonitorTaskRemovedPacket.STREAM_CODEC,
+            wrapHandler(StepCraftingMonitorTaskRemovedPacket::handle)
+        );
+        registrar.playToClient(
+            StepCraftingMonitorTaskAddedPacket.PACKET_TYPE,
+            StepCraftingMonitorTaskAddedPacket.STREAM_CODEC,
+            wrapHandler(StepCraftingMonitorTaskAddedPacket::handle)
+        );
+        registrar.playToClient(
+            StepCraftingMonitorActivePacket.PACKET_TYPE,
+            StepCraftingMonitorActivePacket.STREAM_CODEC,
+            wrapHandler(StepCraftingMonitorActivePacket::handle)
         );
     }
 

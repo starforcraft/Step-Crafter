@@ -50,7 +50,7 @@ public abstract class MixinResourceRepositoryImpl<T> implements MaintainingResou
             final boolean original = this.stickyResources.contains(resource);
             final boolean newCondition = this.stepcrafter$maintainingResources.stream().noneMatch(r -> r.resource().equals(resource));
 
-            // Replace "!sticky.contains(resource)" with: "!sticky.contains(resource) && !maintaining.contains(resource)"
+            // Replaces "!sticky.contains(resource)" with: "!sticky.contains(resource) && !maintaining.contains(resource)"
             return original || !newCondition;
         }
 

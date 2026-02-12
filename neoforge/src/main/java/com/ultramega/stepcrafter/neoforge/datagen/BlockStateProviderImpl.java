@@ -33,6 +33,7 @@ public class BlockStateProviderImpl extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         this.registerStepCrafterManagers();
+        this.registerStepCraftingMonitors();
         this.registerStepRequesterManagers();
     }
 
@@ -41,6 +42,14 @@ public class BlockStateProviderImpl extends BlockStateProvider {
             color,
             block,
             "step_crafter_manager"
+        ));
+    }
+
+    private void registerStepCraftingMonitors() {
+        Blocks.INSTANCE.getStepCraftingMonitor().forEach((color, id, block) -> this.configureActiveColoredDirectionalBlock(
+            color,
+            block,
+            "step_crafting_monitor"
         ));
     }
 

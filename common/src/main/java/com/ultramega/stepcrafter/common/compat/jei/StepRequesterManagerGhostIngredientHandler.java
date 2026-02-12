@@ -1,6 +1,6 @@
 package com.ultramega.stepcrafter.common.compat.jei;
 
-import com.ultramega.stepcrafter.common.steprequestermanager.StepRequesterManagerScreen;
+import com.ultramega.stepcrafter.common.steprequester.manager.StepRequesterManagerScreen;
 
 import java.util.List;
 

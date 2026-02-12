@@ -3,6 +3,10 @@ package com.ultramega.stepcrafter.fabric;
 import com.ultramega.stepcrafter.common.AbstractClientModInitializer;
 import com.ultramega.stepcrafter.common.packet.s2c.PatternResourceSlotUpdatePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.SetMaintainableResourcesPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorActivePacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskAddedPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskRemovedPacket;
+import com.ultramega.stepcrafter.common.packet.s2c.StepCraftingMonitorTaskStatusChangedPacket;
 import com.ultramega.stepcrafter.common.packet.s2c.StepManagerActivePacket;
 import com.ultramega.stepcrafter.common.packet.s2c.StepNameUpdatePacket;
 
@@ -48,6 +52,22 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
         ClientPlayNetworking.registerGlobalReceiver(
             StepManagerActivePacket.PACKET_TYPE,
             wrapHandler(StepManagerActivePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            StepCraftingMonitorTaskStatusChangedPacket.PACKET_TYPE,
+            wrapHandler(StepCraftingMonitorTaskStatusChangedPacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            StepCraftingMonitorTaskRemovedPacket.PACKET_TYPE,
+            wrapHandler(StepCraftingMonitorTaskRemovedPacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            StepCraftingMonitorTaskAddedPacket.PACKET_TYPE,
+            wrapHandler(StepCraftingMonitorTaskAddedPacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            StepCraftingMonitorActivePacket.PACKET_TYPE,
+            wrapHandler(StepCraftingMonitorActivePacket::handle)
         );
     }
 

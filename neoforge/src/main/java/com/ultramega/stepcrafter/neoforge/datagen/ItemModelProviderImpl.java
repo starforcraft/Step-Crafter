@@ -17,20 +17,26 @@ public class ItemModelProviderImpl extends ItemModelProvider {
     @Override
     protected void registerModels() {
         this.registerStepCrafterManagers();
+        this.registerStepCraftingMonitors();
         this.registerStepRequesterManagers();
     }
 
     private void registerStepCrafterManagers() {
-        final var blocks = Blocks.INSTANCE.getStepCrafterManager();
-        blocks.forEach((color, id, block) -> super.withExistingParent(
+        Blocks.INSTANCE.getStepCrafterManager().forEach((color, id, block) -> super.withExistingParent(
             id.getPath(),
             createStepCrafterIdentifier("block/step_crafter_manager/" + color.getName())
         ));
     }
 
+    private void registerStepCraftingMonitors() {
+        Blocks.INSTANCE.getStepCraftingMonitor().forEach((color, id, block) -> super.withExistingParent(
+            id.getPath(),
+            createStepCrafterIdentifier("block/step_crafting_monitor/" + color.getName())
+        ));
+    }
+
     private void registerStepRequesterManagers() {
-        final var blocks = Blocks.INSTANCE.getStepRequesterManager();
-        blocks.forEach((color, id, block) -> super.withExistingParent(
+        Blocks.INSTANCE.getStepRequesterManager().forEach((color, id, block) -> super.withExistingParent(
             id.getPath(),
             createStepCrafterIdentifier("block/step_requester_manager/" + color.getName())
         ));

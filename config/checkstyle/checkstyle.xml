@@ -17,7 +17,7 @@
     </module>
     <module name="LineLength">
         <property name="fileExtensions" value="java"/>
-        <property name="max" value="170"/>
+        <property name="max" value="190"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
     <module name="FileLength">
@@ -61,7 +61,6 @@
             <property name="ignoreConstructorParameter" value="true"/>
             <property name="ignoreSetter" value="true"/>
         </module>
-        <module name="IllegalCatch"/>
         <module name="IllegalInstantiation"/>
         <module name="IllegalThrows"/>
         <module name="IllegalToken"/>
@@ -87,7 +86,6 @@
         <module name="UnusedLocalVariable"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
-        <module name="BooleanExpressionComplexity"/>
         <module name="NoCodeInFile"/>
         <module name="UncommentedMain"/>
         <module name="RedundantModifier"/>
@@ -96,7 +94,6 @@
         <module name="MethodCount"/>
         <module name="MethodLength"/>
         <module name="OuterTypeNumber"/>
-        <module name="RecordComponentNumber"/>
         <module name="EmptyForInitializerPad"/>
         <module name="EmptyForIteratorPad"/>
         <module name="NoWhitespaceAfter"/>

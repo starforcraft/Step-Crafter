@@ -23,6 +23,7 @@ public class BlockDropProvider extends BlockLootSubProvider {
         this.drop(Blocks.INSTANCE.getStepCrafter());
         this.drop(Blocks.INSTANCE.getStepRequester());
         Blocks.INSTANCE.getStepCrafterManager().forEach((color, id, block) -> this.drop(block.get()));
+        Blocks.INSTANCE.getStepCraftingMonitor().forEach((color, id, block) -> this.drop(block.get()));
         Blocks.INSTANCE.getStepRequesterManager().forEach((color, id, block) -> this.drop(block.get()));
     }
 
@@ -42,6 +43,7 @@ public class BlockDropProvider extends BlockLootSubProvider {
         blocks.add(Blocks.INSTANCE.getStepCrafter());
         blocks.add(Blocks.INSTANCE.getStepRequester());
         blocks.addAll(Blocks.INSTANCE.getStepCrafterManager().values());
+        blocks.addAll(Blocks.INSTANCE.getStepCraftingMonitor().values());
         blocks.addAll(Blocks.INSTANCE.getStepRequesterManager().values());
         return blocks;
     }

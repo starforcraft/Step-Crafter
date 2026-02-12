@@ -1,42 +1,39 @@
 package com.ultramega.stepcrafter.common.stepcrafter;
 
-import com.ultramega.stepcrafter.common.Platform;
+import com.ultramega.stepcrafter.common.stepcrafter.status.StepTaskStatus;
+import com.ultramega.stepcrafter.common.stepcrafter.task.StepTask;
+import com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskContainer;
 import com.ultramega.stepcrafter.common.support.PatternMinMax;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
 import com.ultramega.stepcrafter.common.support.ResourceStatus;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 
-import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink.Result;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.impl.node.SimpleNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNodeActor;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
-import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
-import com.refinedmods.refinedstorage.common.api.storage.root.FuzzyRootStorage;
-import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
-import net.minecraft.world.item.ItemStack;
+import static com.ultramega.stepcrafter.common.stepcrafter.StepCraftingAlgorithm.canInsertIntoNetwork;
+import static com.ultramega.stepcrafter.common.stepcrafter.StepCraftingAlgorithm.extractResolvedInputs;
+import static com.ultramega.stepcrafter.common.stepcrafter.StepCraftingAlgorithm.insertIntoNetwork;
+import static com.ultramega.stepcrafter.common.stepcrafter.StepCraftingAlgorithm.prepareCraft;
 
 public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCrafterProvider {
     private final Actor actor = new NetworkNodeActor(this);
     private final Set<StepCraftingParentContainer> parents = new HashSet<>();
+    private final StepTaskContainer tasks = new StepTaskContainer(this);
+    private int priority;
     private final PatternMinMax[] patterns;
 
     private StepCrafterBlockEntity blockEntity;
@@ -53,6 +50,8 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
         if (this.network == null || !this.isActive()) {
             return;
         }
+
+        this.tasks.craft(this.network);
 
         final StorageNetworkComponent storageComponent = this.network.getComponent(StorageNetworkComponent.class);
         final PatternResourceContainerImpl patternResources = this.blockEntity.getPatternResourceContainer();
@@ -91,97 +90,29 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
     }
 
     private ResourceStatus craftOneItemNew(final StorageNetworkComponent storageComponent, final Pattern pattern) {
-        final List<Ingredient> uniqueIngredients = mergeIngredients(pattern.layout().ingredients());
-        final Map<Ingredient, ResourceKey> resolvedInputs = new HashMap<>();
-
-        // Check if all ingredients can be extracted
-        for (final Ingredient ingredient : uniqueIngredients) {
-            boolean resolved = false;
-
-            for (final ResourceKey input : ingredient.inputs()) {
-                for (final ResourceKey resourceCandidate : this.expandResourceCandidates(storageComponent, input)) {
-                    if (storageComponent.extract(resourceCandidate, ingredient.amount(), Action.SIMULATE, this.actor) == ingredient.amount()) {
-                        resolvedInputs.put(ingredient, resourceCandidate);
-                        resolved = true;
-                        break;
-                    }
-                }
-                if (resolved) {
-                    break;
-                }
-            }
-
-            if (!resolved) {
-                return ResourceStatus.NOT_ENOUGH_INGREDIENTS;
-            }
+        final StepCraftingAlgorithm.CraftPreparation preparation = prepareCraft(storageComponent, pattern, null, this.actor);
+        if (preparation == null) {
+            return ResourceStatus.NOT_ENOUGH_INGREDIENTS;
         }
 
-        // Calculate byproducts
-        final Map<Ingredient, ItemStack> byproducts = new HashMap<>();
-        for (final Map.Entry<Ingredient, ResourceKey> entry : resolvedInputs.entrySet()) {
-            if (entry.getValue() instanceof ItemResource itemResource) {
-                final ItemStack remainingItem = Platform.INSTANCE.getCraftingRemainingItem(itemResource.toItemStack());
-                if (!remainingItem.isEmpty()) {
-                    byproducts.put(entry.getKey(), remainingItem);
-                }
-            }
-        }
-
-        final List<ResourceAmount> totalResources = new ArrayList<>(pattern.layout().outputs());
-        for (final Map.Entry<Ingredient, ItemStack> entry : byproducts.entrySet()) {
-            totalResources.add(new ResourceAmount(ItemResource.ofItemStack(entry.getValue()), entry.getValue().getCount()));
-        }
-        final Result result = this.blockEntity.accept(totalResources, Action.SIMULATE);
+        final Result result = this.blockEntity.accept(preparation.totalResources(), Action.SIMULATE);
         if (result == Result.SKIPPED) {
             // No Sink (connected machine) so try to import into network
-
-            // Check if all outputs and byproducts can be inserted
-            for (final ResourceAmount resource : totalResources) {
-                if (storageComponent.insert(resource.resource(), resource.amount(), Action.SIMULATE, this.actor) != resource.amount()) {
-                    return ResourceStatus.NETWORK_FULL;
-                }
+            if (!canInsertIntoNetwork(storageComponent, preparation.totalResources(), this.actor)) {
+                return ResourceStatus.NETWORK_FULL;
             }
 
-            // Success, execute operation
-            for (final Map.Entry<Ingredient, ResourceKey> entry : resolvedInputs.entrySet()) {
-                storageComponent.extract(entry.getValue(), entry.getKey().amount(), Action.EXECUTE, this.actor);
-            }
-            for (final ResourceAmount resource : totalResources) {
-                storageComponent.insert(resource.resource(), resource.amount(), Action.EXECUTE, this.actor);
-            }
-
+            extractResolvedInputs(storageComponent, preparation.resolvedInputs(), null, this.actor);
+            insertIntoNetwork(storageComponent, preparation.totalResources(), null, 0, this.actor);
             return ResourceStatus.FINISHED;
         } else if (result == Result.ACCEPTED) {
             // Has Sink (connected machine) and was accepted
-            for (final Map.Entry<Ingredient, ResourceKey> entry : resolvedInputs.entrySet()) {
-                storageComponent.extract(entry.getValue(), entry.getKey().amount(), Action.EXECUTE, this.actor);
-            }
-
-            this.blockEntity.accept(totalResources, Action.EXECUTE);
-
+            extractResolvedInputs(storageComponent, preparation.resolvedInputs(), null, this.actor);
+            this.blockEntity.accept(preparation.totalResources(), Action.EXECUTE);
             return ResourceStatus.FINISHED;
-        } else {
-            return ResourceStatus.EXTERNAL_CONTAINER_FULL;
         }
-    }
 
-    private static List<Ingredient> mergeIngredients(final List<Ingredient> ingredients) {
-        return ingredients.stream()
-            .collect(Collectors.groupingBy(
-                Ingredient::inputs,
-                Collectors.summingLong(Ingredient::amount)
-            ))
-            .entrySet().stream()
-            .map(e -> new Ingredient(e.getValue(), e.getKey()))
-            .toList();
-    }
-
-    public Collection<ResourceKey> expandResourceCandidates(final RootStorage rootStorage,
-                                                            final ResourceKey resource) {
-        if (!(rootStorage instanceof FuzzyRootStorage fuzzyRootStorage)) {
-            return Collections.singletonList(resource);
-        }
-        return fuzzyRootStorage.getFuzzy(resource);
+        return ResourceStatus.EXTERNAL_CONTAINER_FULL;
     }
 
     public void setBlockEntity(final StepCrafterBlockEntity blockEntity) {
@@ -195,7 +126,7 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
         }
         this.patterns[index] = pattern;
         if (pattern != null) {
-            this.parents.forEach(parent -> parent.add(this, pattern));
+            this.parents.forEach(parent -> parent.add(this, pattern, this.priority));
         }
     }
 
@@ -212,7 +143,7 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
         }
         for (final PatternMinMax pattern : this.patterns) {
             if (pattern != null) {
-                this.parents.forEach(parent -> parent.add(this, pattern));
+                this.parents.forEach(parent -> parent.add(this, pattern, this.priority));
             }
         }
     }
@@ -220,19 +151,54 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
     @Override
     public void onAddedIntoContainer(final StepCraftingParentContainer parentContainer) {
         this.parents.add(parentContainer);
+        this.tasks.onAddedIntoContainer(parentContainer);
         for (final PatternMinMax pattern : this.patterns) {
             if (pattern != null) {
-                parentContainer.add(this, pattern);
+                parentContainer.add(this, pattern, this.priority);
             }
         }
     }
 
     @Override
     public void onRemovedFromContainer(final StepCraftingParentContainer parentContainer) {
+        this.tasks.onRemovedFromContainer(parentContainer);
         this.parents.remove(parentContainer);
         for (final PatternMinMax pattern : this.patterns) {
             if (pattern != null) {
                 parentContainer.remove(this, pattern);
+            }
+        }
+    }
+
+    @Override
+    public void addTask(final StepTask task) {
+        this.tasks.add(task, this.network);
+        this.parents.forEach(parent -> parent.taskAdded(this, task));
+    }
+
+    @Override
+    public void cancelTask(final TaskId taskId) {
+        this.tasks.cancel(taskId);
+    }
+
+    @Override
+    public List<StepTaskStatus> getTaskStatuses() {
+        return this.tasks.getStatuses();
+    }
+
+    public List<StepTask> getTasks() {
+        return this.tasks.getAll();
+    }
+
+    public int getPriority() {
+        return this.priority;
+    }
+
+    public void setPriority(final int priority) {
+        this.priority = priority;
+        for (final PatternMinMax pattern : this.patterns) {
+            if (pattern != null) {
+                this.parents.forEach(parent -> parent.update(pattern, priority));
             }
         }
     }

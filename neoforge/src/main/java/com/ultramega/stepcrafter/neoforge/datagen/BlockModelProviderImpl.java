@@ -38,6 +38,7 @@ public class BlockModelProviderImpl extends BlockModelProvider {
     @Override
     protected void registerModels() {
         this.registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getStepCrafterManager(), "step_crafter_manager");
+        this.registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getStepCraftingMonitor(), "step_crafting_monitor");
         this.registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getStepRequesterManager(), "step_requester_manager");
     }
 

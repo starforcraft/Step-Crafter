@@ -16,6 +16,7 @@ public final class CreativeModeTabItems {
         itemConsumer.accept(Blocks.INSTANCE.getStepCrafter());
         itemConsumer.accept(Blocks.INSTANCE.getStepRequester());
         appendDefaultBlockColor(consumer, Blocks.INSTANCE.getStepCrafterManager());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getStepCraftingMonitor());
         appendDefaultBlockColor(consumer, Blocks.INSTANCE.getStepRequesterManager());
 
         itemConsumer.accept(Items.INSTANCE.getSlotUpgrade());
@@ -27,6 +28,7 @@ public final class CreativeModeTabItems {
 
     public static void appendColoredVariants(final Consumer<ItemStack> consumer) {
         appendColoredBlocks(consumer, Blocks.INSTANCE.getStepCrafterManager());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getStepCraftingMonitor());
         appendColoredBlocks(consumer, Blocks.INSTANCE.getStepRequesterManager());
     }
 

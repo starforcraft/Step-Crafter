@@ -12,6 +12,8 @@ public interface Config {
 
     StepManagerEntry getStepCrafterManager();
 
+    SimpleEnergyUsageEntry getStepCraftingMonitor();
+
     StepManagerEntry getStepRequesterManager();
 
     SimpleEnergyUsageEntry getSlotUpgrade();

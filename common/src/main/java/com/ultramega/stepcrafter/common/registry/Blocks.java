@@ -3,9 +3,10 @@ package com.ultramega.stepcrafter.common.registry;
 import com.ultramega.stepcrafter.common.ContentIds;
 import com.ultramega.stepcrafter.common.ContentNames;
 import com.ultramega.stepcrafter.common.stepcrafter.StepCrafterBlock;
-import com.ultramega.stepcrafter.common.stepcraftermanager.StepCrafterManagerBlock;
+import com.ultramega.stepcrafter.common.stepcrafter.manager.StepCrafterManagerBlock;
+import com.ultramega.stepcrafter.common.stepcrafter.stepcraftingmonitor.StepCraftingMonitorBlock;
 import com.ultramega.stepcrafter.common.steprequester.StepRequesterBlock;
-import com.ultramega.stepcrafter.common.steprequestermanager.StepRequesterManagerBlock;
+import com.ultramega.stepcrafter.common.steprequester.manager.StepRequesterManagerBlock;
 
 import com.refinedmods.refinedstorage.common.content.BlockColorMap;
 import com.refinedmods.refinedstorage.common.support.BaseBlockItem;
@@ -27,6 +28,12 @@ public final class Blocks {
         StepCrafterManagerBlock::new,
         ContentIds.STEP_CRAFTER_MANAGER,
         ContentNames.STEP_CRAFTER_MANAGER,
+        COLOR
+    );
+    private final BlockColorMap<StepCraftingMonitorBlock, BaseBlockItem> stepCraftingMonitor = new BlockColorMap<>(
+        StepCraftingMonitorBlock::new,
+        ContentIds.STEP_CRAFTING_MONITOR,
+        ContentNames.STEP_CRAFTING_MONITOR,
         COLOR
     );
     private final BlockColorMap<StepRequesterManagerBlock, BaseBlockItem> stepRequesterManager = new BlockColorMap<>(
@@ -57,6 +64,10 @@ public final class Blocks {
 
     public BlockColorMap<StepCrafterManagerBlock, BaseBlockItem> getStepCrafterManager() {
         return this.stepCrafterManager;
+    }
+
+    public BlockColorMap<StepCraftingMonitorBlock, BaseBlockItem> getStepCraftingMonitor() {
+        return this.stepCraftingMonitor;
     }
 
     public BlockColorMap<StepRequesterManagerBlock, BaseBlockItem> getStepRequesterManager() {
