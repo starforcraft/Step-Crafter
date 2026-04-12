@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ClientPlatformUtil.class)
 public abstract class MixinClientPlatformUtil {
-    @Inject(method = "autocraftingPreviewCancelResponseReceived", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "autocraftingPreviewCancelResponseReceived", at = @At("HEAD"), cancellable = true, remap = false)
     private static void autocraftingPreviewCancelResponseReceived(final CallbackInfo ci) {
         if (Minecraft.getInstance().screen instanceof StepCraftingPreviewScreen screen) {
             screen.cancelResponseReceived();

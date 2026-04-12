@@ -88,7 +88,7 @@ public abstract class MixinAbstractGridScreen<T extends AbstractGridContainerMen
 
     @ModifyExpressionValue(method = "mouseClicked", at = @At(value = "INVOKE",
         target = "Lcom/refinedmods/refinedstorage/common/api/grid/view/GridResource;"
-            + "isAutocraftable(Lcom/refinedmods/refinedstorage/api/resource/repository/ResourceRepository;)Z"))
+            + "isAutocraftable(Lcom/refinedmods/refinedstorage/api/resource/repository/ResourceRepository;)Z"), remap = false)
     public boolean mouseClicked(final boolean original) {
         final ItemStack carriedStack = this.getMenu().getCarried();
         final GridResource resource = this.getCurrentGridResource();

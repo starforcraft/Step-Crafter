@@ -56,8 +56,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public class ModInitializerImpl extends AbstractModInitializer implements RefinedStoragePlugin, ModInitializer {
+    private static boolean configRegistered = false;
+
+    private static void ensureConfigRegistered() {
+        if (!configRegistered) {
+            AutoConfig.register(ConfigImpl.class, Toml4jConfigSerializer::new);
+            configRegistered = true;
+        }
+    }
+
     @Override
     public void onApiAvailable(final RefinedStorageApi refinedStorageApi) {
+        ensureConfigRegistered();
         PlatformProxy.loadPlatform(new PlatformImpl());
         this.registerContent();
         this.registerCapabilities();
@@ -68,7 +78,7 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
 
     @Override
     public void onInitialize() {
-        AutoConfig.register(ConfigImpl.class, Toml4jConfigSerializer::new);
+        ensureConfigRegistered();
     }
 
     private void registerContent() {

@@ -18,18 +18,17 @@ import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.MOD_ID;
 @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal", "CanBeFinal"})
 public class ConfigImpl implements ConfigData, com.ultramega.stepcrafter.common.Config {
     @ConfigEntry.Gui.CollapsibleObject
-    private SimpleEnergySpeedUsageEntryImpl stepCrafter = new SimpleEnergySpeedUsageEntryImpl(DefaultConfig.STEP_CRAFTER_ENERGY_USAGE,
-        DefaultConfig.STEP_CRAFTER_SPEED_MULTIPLIER);
+    private SimpleEnergySpeedUsageEntryImpl stepCrafter = new SimpleEnergySpeedUsageEntryImpl(DefaultConfig.STEP_CRAFTER_ENERGY_USAGE, DefaultConfig.STEP_CRAFTER_SPEED_MULTIPLIER);
     @ConfigEntry.Gui.CollapsibleObject
-    private SimpleEnergyUsageEntry stepRequester = new SimpleEnergyUsageEntryImpl(DefaultConfig.STEP_REQUESTER_ENERGY_USAGE);
+    private SimpleEnergyUsageEntryImpl stepRequester = new SimpleEnergyUsageEntryImpl(DefaultConfig.STEP_REQUESTER_ENERGY_USAGE);
     @ConfigEntry.Gui.CollapsibleObject
-    private StepManagerEntry stepCrafterManager = new StepManagerEntryImpl(DefaultConfig.STEP_CRAFTER_MANAGER_ENERGY_USAGE);
+    private StepManagerEntryImpl stepCrafterManager = new StepManagerEntryImpl(DefaultConfig.STEP_CRAFTER_MANAGER_ENERGY_USAGE);
     @ConfigEntry.Gui.CollapsibleObject
-    private StepManagerEntry stepCraftingMonitor = new StepManagerEntryImpl(DefaultConfig.STEP_CRAFTING_MONITOR_ENERGY_USAGE);
+    private StepManagerEntryImpl stepCraftingMonitor = new StepManagerEntryImpl(DefaultConfig.STEP_CRAFTING_MONITOR_ENERGY_USAGE);
     @ConfigEntry.Gui.CollapsibleObject
-    private StepManagerEntry stepRequesterManager = new StepManagerEntryImpl(DefaultConfig.STEP_REQUESTER_MANAGER_ENERGY_USAGE);
+    private StepManagerEntryImpl stepRequesterManager = new StepManagerEntryImpl(DefaultConfig.STEP_REQUESTER_MANAGER_ENERGY_USAGE);
     @ConfigEntry.Gui.CollapsibleObject
-    private SimpleEnergyUsageEntry slotUpgrade = new SimpleEnergyUsageEntryImpl(DefaultConfig.SLOT_UPGRADE_ENERGY_USAGE);
+    private SimpleEnergyUsageEntryImpl slotUpgrade = new SimpleEnergyUsageEntryImpl(DefaultConfig.SLOT_UPGRADE_ENERGY_USAGE);
 
     public static ConfigImpl get() {
         return AutoConfig.getConfigHolder(ConfigImpl.class).getConfig();
