@@ -1,6 +1,7 @@
 package com.ultramega.stepcrafter.common.stepcrafter;
 
 import com.ultramega.stepcrafter.common.stepcrafter.widget.AutocrafterPrioritySideButtonWidget;
+import com.ultramega.stepcrafter.common.stepcrafter.widget.InsertIntoPointedContainerSideButtonWidget;
 import com.ultramega.stepcrafter.common.stepcrafter.widget.VisibleToTheStepCrafterManagerSideButtonWidget;
 import com.ultramega.stepcrafter.common.support.AbstractEditableNameScreen;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;
@@ -36,6 +37,9 @@ public class StepCrafterScreen extends AbstractEditableNameScreen<StepCrafterCon
         ));
         this.addSideButton(new VisibleToTheStepCrafterManagerSideButtonWidget(
             this.getMenu().getProperty(StepCrafterPropertyTypes.VISIBLE_TO_THE_STEP_CRAFTER_MANAGER)
+        ));
+        this.addSideButton(new InsertIntoPointedContainerSideButtonWidget(
+            this.getMenu().getProperty(StepCrafterPropertyTypes.INSERT_INTO_POINTED_CONTAINER)
         ));
     }
 

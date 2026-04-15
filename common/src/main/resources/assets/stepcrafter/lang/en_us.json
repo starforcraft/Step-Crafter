@@ -18,6 +18,8 @@
   "gui.stepcrafter.step_crafter.visible_to_the_step_crafter_manager.help": "If this is enabled, you will be able to manage this step crafter in the Step Crafter Manager.",
   "gui.stepcrafter.step_crafter.visible_to_the_step_requester_manager": "Visible to the Step Requester Manager",
   "gui.stepcrafter.step_crafter.visible_to_the_step_requester_manager.help": "If this is enabled, you will be able to manage this step requester in the Step Requester Manager.",
+  "gui.stepcrafter.step_crafter.insert_into_pointed_container": "Insert into pointed container",
+  "gui.stepcrafter.step_crafter.insert_into_pointed_container.help": "If this is enabled, the step crafter will try to import the crafted components into the container its pointed at.",
   "gui.stepcrafter.resource_configuration.minimum": "Min:",
   "gui.stepcrafter.resource_configuration.maximum": "Max:",
   "gui.stepcrafter.resource_configuration.batch_size": "Batch Size:",

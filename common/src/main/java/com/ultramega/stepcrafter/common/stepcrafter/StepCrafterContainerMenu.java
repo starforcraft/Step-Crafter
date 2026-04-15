@@ -40,6 +40,7 @@ public class StepCrafterContainerMenu extends AbstractEditableNameContainerMenu 
         this.registerProperty(new ClientProperty<>(PropertyTypes.REDSTONE_MODE, RedstoneMode.IGNORE));
         this.registerProperty(new ClientProperty<>(StepCrafterPropertyTypes.PRIORITY, 0));
         this.registerProperty(new ClientProperty<>(StepCrafterPropertyTypes.VISIBLE_TO_THE_STEP_CRAFTER_MANAGER, true));
+        this.registerProperty(new ClientProperty<>(StepCrafterPropertyTypes.INSERT_INTO_POINTED_CONTAINER, false));
         this.addSlots(
             StepCrafterBlockEntity.createPatternResourcesContainer(data, playerInventory.player::level, this::getAmountSlotUpgrades),
             new UpgradeContainer(UPGRADES, UpgradeDestinations.STEP_CRAFTER, (c, upgradeEnergyUsage) -> {
@@ -70,6 +71,11 @@ public class StepCrafterContainerMenu extends AbstractEditableNameContainerMenu 
             StepCrafterPropertyTypes.VISIBLE_TO_THE_STEP_CRAFTER_MANAGER,
             stepCrafter::isVisibleToTheStepCrafterManager,
             stepCrafter::setVisibleToTheStepCrafterManager
+        ));
+        this.registerProperty(new ServerProperty<>(
+            StepCrafterPropertyTypes.INSERT_INTO_POINTED_CONTAINER,
+            stepCrafter::shouldInsertIntoPointedContainer,
+            stepCrafter::setInsertIntoPointedContainer
         ));
         this.addSlots(stepCrafter.getPatternResourceContainer(), stepCrafter.getUpgradeContainer());
     }

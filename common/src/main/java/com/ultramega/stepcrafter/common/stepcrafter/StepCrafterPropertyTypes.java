@@ -14,6 +14,10 @@ final class StepCrafterPropertyTypes {
         createStepCrafterIdentifier("visible_to_the_step_crafter_manager")
     );
 
+    static final PropertyType<Boolean> INSERT_INTO_POINTED_CONTAINER = PropertyTypes.createBooleanProperty(
+        createStepCrafterIdentifier("insert_into_pointed_container")
+    );
+
     private StepCrafterPropertyTypes() {
     }
 }

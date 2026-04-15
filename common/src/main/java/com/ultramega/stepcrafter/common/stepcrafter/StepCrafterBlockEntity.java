@@ -80,10 +80,12 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     private static final String TAG_PRIORITY = "pri";
     private static final String TAG_TASKS = "tasks";
     private static final String TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER = "vstm";
+    private static final String TAG_INSERT_INTO_POINTED_CONTAINER = "iipc";
 
     private final PatternResourceContainerImpl patternResourceContainer;
     private final UpgradeContainer upgradeContainer;
     private boolean visibleToTheStepCrafterManager = true;
+    private boolean insertIntoPointedContainer = false;
 
     @Nullable
     private PlatformPatternProviderExternalPatternSink sink;
@@ -220,6 +222,7 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         super.writeConfiguration(tag, provider);
         tag.putInt(TAG_PRIORITY, this.mainNetworkNode.getPriority());
         tag.putBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER, this.visibleToTheStepCrafterManager);
+        tag.putBoolean(TAG_INSERT_INTO_POINTED_CONTAINER, this.insertIntoPointedContainer);
     }
 
     @Override
@@ -253,6 +256,9 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         }
         if (tag.contains(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER)) {
             this.visibleToTheStepCrafterManager = tag.getBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER);
+        }
+        if (tag.contains(TAG_INSERT_INTO_POINTED_CONTAINER)) {
+            this.insertIntoPointedContainer = tag.getBoolean(TAG_INSERT_INTO_POINTED_CONTAINER);
         }
     }
 
@@ -296,6 +302,15 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
 
     void setVisibleToTheStepCrafterManager(final boolean visibleToTheStepCrafterManager) {
         this.visibleToTheStepCrafterManager = visibleToTheStepCrafterManager;
+        this.setChanged();
+    }
+
+    boolean shouldInsertIntoPointedContainer() {
+        return this.insertIntoPointedContainer;
+    }
+
+    void setInsertIntoPointedContainer(final boolean insertIntoPointedContainer) {
+        this.insertIntoPointedContainer = insertIntoPointedContainer;
         this.setChanged();
     }
 
@@ -396,7 +411,7 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
 
     @Override
     public Result accept(final Collection<ResourceAmount> resources, final Action action) {
-        if (this.sink == null) {
+        if (this.sink == null || !this.insertIntoPointedContainer) {
             return ExternalPatternSink.Result.SKIPPED;
         }
         return this.sink.accept(resources, action);
