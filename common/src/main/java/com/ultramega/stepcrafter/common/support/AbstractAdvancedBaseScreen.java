@@ -122,7 +122,7 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
             }
             graphics.drawString(font, formattedMaxAmount, 0, 24, 0xFFFFFF);
 
-            graphics.blitSprite(slot.getStatus().getIcon(), 22, -2, 10, 10);
+            graphics.blitSprite(ResourceStatusClientHelper.getIcon(slot.getStatus()), 22, -2, 10, 10);
 
             poseStack.popPose();
         }
@@ -174,7 +174,7 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
         if (this.hoveredSlot instanceof PatternResourceSlot patternSlot) {
             final List<ClientTooltipComponent> tooltip;
             if (!patternSlot.isEmpty() && this.isHovering(patternSlot.x + 12, patternSlot.y - 7, 10, 10, x, y)) {
-                tooltip = patternSlot.getStatus().getTooltip();
+                tooltip = ResourceStatusClientHelper.getTooltip(patternSlot.getStatus());
             } else {
                 tooltip = this.getPatternResourceSlotTooltip(this.menu.getCarried(), patternSlot);
             }

@@ -107,7 +107,8 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
             mouseX,
             mouseY
         );
-        this.titleMarquee.render(graphics, this.leftPos + this.titleLabelX, this.topPos + this.titleLabelY, this.font, hoveringOverTitle);
+        this.titleMarquee.render(graphics, this.leftPos + this.titleLabelX, this.topPos + this.titleLabelY, this.font, hoveringOverTitle,
+            Minecraft.getInstance().getTimer().getGameTimeDeltaTicks());
         graphics.pose().pushPose();
         graphics.pose().translate(this.leftPos, this.topPos, 0.0F);
 

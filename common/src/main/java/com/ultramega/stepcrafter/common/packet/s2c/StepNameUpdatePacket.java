@@ -14,11 +14,10 @@ import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createS
 
 public record StepNameUpdatePacket(Component name) implements CustomPacketPayload {
     public static final Type<StepNameUpdatePacket> PACKET_TYPE = new Type<>(createStepCrafterIdentifier("step_name_update"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, StepNameUpdatePacket> STREAM_CODEC =
-        StreamCodec.composite(
-            ComponentSerialization.STREAM_CODEC, StepNameUpdatePacket::name,
-            StepNameUpdatePacket::new
-        );
+    public static final StreamCodec<RegistryFriendlyByteBuf, StepNameUpdatePacket> STREAM_CODEC = StreamCodec.composite(
+        ComponentSerialization.STREAM_CODEC, StepNameUpdatePacket::name,
+        StepNameUpdatePacket::new
+    );
 
     public static void handle(final StepNameUpdatePacket packet, final PacketContext ctx) {
         if (ctx.getPlayer().containerMenu instanceof AbstractEditableNameContainerMenu containerMenu) {

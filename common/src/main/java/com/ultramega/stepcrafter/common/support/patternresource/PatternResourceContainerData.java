@@ -11,12 +11,11 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 public record PatternResourceContainerData(List<Optional<ResourceMinMaxAmount>> resources) {
-    public static final StreamCodec<RegistryFriendlyByteBuf, PatternResourceContainerData> STREAM_CODEC =
-        StreamCodec.composite(
-            ByteBufCodecs.collection(ArrayList::new, ResourceMinMaxAmount.STREAM_OPTIONAL_CODEC),
-            PatternResourceContainerData::resources,
-            PatternResourceContainerData::new
-        );
+    public static final StreamCodec<RegistryFriendlyByteBuf, PatternResourceContainerData> STREAM_CODEC = StreamCodec.composite(
+        ByteBufCodecs.collection(ArrayList::new, ResourceMinMaxAmount.STREAM_OPTIONAL_CODEC),
+        PatternResourceContainerData::resources,
+        PatternResourceContainerData::new
+    );
 
     public static PatternResourceContainerData of(final PatternResourceContainerImpl resourceContainer) {
         final List<Optional<ResourceMinMaxAmount>> resources = new ArrayList<>();

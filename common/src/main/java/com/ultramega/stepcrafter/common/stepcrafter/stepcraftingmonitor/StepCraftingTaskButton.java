@@ -63,13 +63,13 @@ public class StepCraftingTaskButton extends AbstractButton {
     protected void renderWidget(final GuiGraphics graphics,
                                 final int mouseX,
                                 final int mouseY,
-                                final float partialTick) {
-        super.renderWidget(graphics, mouseX, mouseY, partialTick);
+                                final float partialTicks) {
+        super.renderWidget(graphics, mouseX, mouseY, partialTicks);
         this.renderResourceIcon(graphics);
         final int yOffset = SmallText.isSmall() ? 5 : 3;
         final int textX = this.getX() + 3 + 16 + 3;
         final int textY = this.getY() + yOffset;
-        this.text.render(graphics, textX, textY, Minecraft.getInstance().font, this.isHovered);
+        this.text.render(graphics, textX, textY, Minecraft.getInstance().font, this.isHovered, partialTicks);
         final int ySpacing = SmallText.isSmall() ? 7 : 8;
         final long percentageCompleted = Math.round(
             this.stateProvider.getPercentageCompleted(this.task.id()) * 100
