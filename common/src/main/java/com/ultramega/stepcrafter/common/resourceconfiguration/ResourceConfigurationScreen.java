@@ -7,6 +7,7 @@ import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceS
 
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.autocrafting.PatternOutputRenderingScreen;
+import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
 import com.refinedmods.refinedstorage.common.support.amount.ActionButton;
 import com.refinedmods.refinedstorage.common.support.amount.ActionIcon;
 import com.refinedmods.refinedstorage.common.support.amount.AmountOperations;
@@ -68,11 +69,15 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
         this.resourceSlot = resourceSlot;
         this.amountOperations = DoubleAmountOperations.INSTANCE;
 
-        this.minInitialAmount = resourceSlot.getMinAmount();
-        this.maxInitialAmount = resourceSlot.getMaxAmount();
-        this.batchSizeInitialAmount = resourceSlot.getBatchSize();
+        final PlatformResourceKey resource = resourceSlot.getResource();
+        this.minInitialAmount = resource != null
+                ? resource.getResourceType().getDisplayAmount(resourceSlot.getMinAmount()) : resourceSlot.getMinAmount();
+        this.maxInitialAmount = resource != null
+                ? resource.getResourceType().getDisplayAmount(resourceSlot.getMaxAmount()) : resourceSlot.getMaxAmount();
+        this.batchSizeInitialAmount = resource != null
+                ? resource.getResourceType().getDisplayAmount(resourceSlot.getBatchSize()) : resourceSlot.getBatchSize();
         this.showBatchSize = showBatchSize;
-        this.minAmount = resourceSlot.getResource() != null ? resourceSlot.getResource().getResourceType().getDisplayAmount(0) : 0;
+        this.minAmount = resource != null ? resource.getResourceType().getDisplayAmount(0) : 0;
         this.maxAmount = Double.MAX_VALUE;
 
         this.imageWidth = 179;

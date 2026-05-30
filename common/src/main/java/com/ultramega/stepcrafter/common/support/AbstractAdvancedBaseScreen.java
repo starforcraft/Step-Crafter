@@ -9,7 +9,6 @@ import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceFactory;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.support.AbstractBaseScreen;
-import com.refinedmods.refinedstorage.common.support.resource.ItemResourceRendering;
 import com.refinedmods.refinedstorage.common.support.tooltip.HelpClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.support.tooltip.MouseClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.support.tooltip.SmallTextClientTooltipComponent;
@@ -117,7 +116,7 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
 
             graphics.drawString(font, formattedMinAmount, 0, 0, 0xFFFFFF);
             if (showBatchSize) {
-                final String formattedBatchSize = ItemResourceRendering.INSTANCE.formatAmount(slot.getBatchSize(), true);
+                final String formattedBatchSize = rendering.formatAmount(slot.getBatchSize(), true);
                 graphics.drawString(font, formattedBatchSize, 0, 12, 0xFFFFFF);
             }
             graphics.drawString(font, formattedMaxAmount, 0, 24, 0xFFFFFF);
@@ -246,12 +245,18 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
     }
 
     protected void addPatternResourceSlotTooltips(final PatternResourceSlot slot, final List<ClientTooltipComponent> tooltip) {
-        tooltip.add(ClientTooltipComponent.create(Component.translatable("tooltip.stepcrafter.resource_configuration.minimum_amount", slot.getMinAmount())
+        final ResourceKey resource = slot.getResource();
+        if (resource == null) {
+            return;
+        }
+        final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass());
+
+        tooltip.add(ClientTooltipComponent.create(Component.translatable("tooltip.stepcrafter.resource_configuration.minimum_amount", rendering.formatAmount(slot.getMinAmount(), false))
             .withStyle(ChatFormatting.GRAY).getVisualOrderText()));
-        tooltip.add(ClientTooltipComponent.create(Component.translatable("tooltip.stepcrafter.resource_configuration.maximum_amount", slot.getMaxAmount())
+        tooltip.add(ClientTooltipComponent.create(Component.translatable("tooltip.stepcrafter.resource_configuration.maximum_amount", rendering.formatAmount(slot.getMaxAmount(), false))
             .withStyle(ChatFormatting.GRAY).getVisualOrderText()));
         if (slot.isFilter()) {
-            tooltip.add(ClientTooltipComponent.create(Component.translatable("tooltip.stepcrafter.resource_configuration.batch_size", slot.getBatchSize())
+            tooltip.add(ClientTooltipComponent.create(Component.translatable("tooltip.stepcrafter.resource_configuration.batch_size", rendering.formatAmount(slot.getBatchSize(), false))
                 .withStyle(ChatFormatting.GRAY).getVisualOrderText()));
         }
 
