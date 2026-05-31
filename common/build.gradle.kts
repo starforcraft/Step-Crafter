@@ -46,6 +46,6 @@ dependencies {
 
     api("mezz.jei:jei-${minecraftVersion}-common-api:${jeiVersion}")
     api("mezz.jei:jei-${minecraftVersion}-common:${jeiVersion}")
-    compileOnlyApi("dev.emi:emi-xplat-mojmap:${emiVersion}")
+//    compileOnlyApi("dev.emi:emi-xplat-mojmap:${emiVersion}")
     compileOnly("io.github.llamalad7:mixinextras-common:0.4.1")
 }

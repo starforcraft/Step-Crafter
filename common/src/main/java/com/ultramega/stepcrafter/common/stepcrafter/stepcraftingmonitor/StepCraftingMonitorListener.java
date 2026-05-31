@@ -4,7 +4,7 @@ import com.ultramega.stepcrafter.common.stepcrafter.status.StepTaskStatus;
 
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface StepCraftingMonitorListener {
     void currentTaskChanged(@Nullable StepTaskStatus taskStatus);

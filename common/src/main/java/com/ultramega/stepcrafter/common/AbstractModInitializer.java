@@ -45,8 +45,8 @@ public abstract class AbstractModInitializer {
     }
 
     protected final void registerBlocks(final RegistryCallback<Block> callback) {
-        Blocks.INSTANCE.setStepCrafter(callback.register(ContentIds.STEP_CRAFTER, () -> new StepCrafterBlock(ContentNames.STEP_CRAFTER)));
-        Blocks.INSTANCE.setStepRequester(callback.register(ContentIds.STEP_REQUESTER, () -> new StepRequesterBlock(ContentNames.STEP_REQUESTER)));
+        Blocks.INSTANCE.setStepCrafter(callback.register(ContentIds.STEP_CRAFTER, () -> new StepCrafterBlock(ContentIds.STEP_CRAFTER, ContentNames.STEP_CRAFTER)));
+        Blocks.INSTANCE.setStepRequester(callback.register(ContentIds.STEP_REQUESTER, () -> new StepRequesterBlock(ContentIds.STEP_REQUESTER, ContentNames.STEP_REQUESTER)));
         Blocks.INSTANCE.getStepCrafterManager().registerBlocks(callback);
         Blocks.INSTANCE.getStepCraftingMonitor().registerBlocks(callback);
         Blocks.INSTANCE.getStepRequesterManager().registerBlocks(callback);

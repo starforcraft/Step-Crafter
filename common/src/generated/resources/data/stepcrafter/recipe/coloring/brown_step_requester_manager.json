@@ -2,15 +2,10 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "stepcrafter:step_requester_managers"
-    },
-    {
-      "tag": "c:dyes/brown"
-    }
+    "#stepcrafter:step_requester_managers",
+    "#c:dyes/brown"
   ],
   "result": {
-    "count": 1,
     "id": "stepcrafter:brown_step_requester_manager"
   }
 }

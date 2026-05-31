@@ -6,13 +6,13 @@ import com.ultramega.stepcrafter.common.steprequester.manager.StepRequesterManag
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterIdentifier;
 
 @JeiPlugin
 public class JeiModPlugin implements IModPlugin {
-    private static final ResourceLocation ID = createStepCrafterIdentifier("plugin");
+    private static final Identifier ID = createStepCrafterIdentifier("plugin");
 
     @Override
     public void registerGuiHandlers(final IGuiHandlerRegistration registration) {
@@ -21,7 +21,7 @@ public class JeiModPlugin implements IModPlugin {
     }
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return ID;
     }
 }

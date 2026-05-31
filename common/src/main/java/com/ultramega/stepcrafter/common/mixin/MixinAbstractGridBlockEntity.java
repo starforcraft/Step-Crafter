@@ -7,11 +7,10 @@ import com.refinedmods.refinedstorage.api.network.impl.node.grid.GridNetworkNode
 import com.refinedmods.refinedstorage.common.grid.AbstractGridBlockEntity;
 import com.refinedmods.refinedstorage.common.support.network.AbstractBaseNetworkNodeContainerBlockEntity;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(AbstractGridBlockEntity.class)

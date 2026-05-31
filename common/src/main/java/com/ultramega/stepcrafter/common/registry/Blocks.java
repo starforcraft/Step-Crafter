@@ -12,7 +12,8 @@ import com.refinedmods.refinedstorage.common.content.BlockColorMap;
 import com.refinedmods.refinedstorage.common.support.BaseBlockItem;
 
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 import static com.refinedmods.refinedstorage.common.content.Blocks.COLOR;
 import static java.util.Objects.requireNonNull;

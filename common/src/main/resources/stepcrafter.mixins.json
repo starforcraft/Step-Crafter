@@ -14,7 +14,8 @@
     "AbstractGridResourceInvoker",
     "AutocraftingNetworkComponentImplInvoker",
     "AutocrafterManagerViewTypeInvoker",
-    "AutocraftingRequestInvoker"
+    "AutocraftingRequestInvoker",
+    "AbstractContainerScreenAccessor"
   ],
   "client": [
     "MixinAbstractGridScreen",

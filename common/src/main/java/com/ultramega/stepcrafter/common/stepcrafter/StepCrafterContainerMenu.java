@@ -13,8 +13,6 @@ import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes
 import com.refinedmods.refinedstorage.common.support.containermenu.ServerProperty;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
 
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 import static com.ultramega.stepcrafter.common.stepcrafter.StepCrafterBlockEntity.UPGRADES;
@@ -46,7 +45,7 @@ public class StepCrafterContainerMenu extends AbstractEditableNameContainerMenu 
             new UpgradeContainer(UPGRADES, UpgradeDestinations.STEP_CRAFTER, (c, upgradeEnergyUsage) -> {
                 this.amountSlotUpgrades = c.getAmount(Items.INSTANCE.getSlotUpgrade());
                 this.amountSlotUpgradesChanged(this.amountSlotUpgrades);
-            }, 9)
+            }, null)
         );
         this.name = Component.empty();
     }
@@ -81,20 +80,66 @@ public class StepCrafterContainerMenu extends AbstractEditableNameContainerMenu 
     }
 
     @Override
-    public boolean stillValid(final Player p) {
-        if (this.stepCrafter == null) {
-            return true;
-        }
-        return Container.stillValidBlockEntity(this.stepCrafter, p);
-    }
-
-    @Override
     protected void addSlots(final PatternResourceContainerImpl patternContainer, final UpgradeContainer upgradeContainer) {
         for (int i = 0; i < patternContainer.getContainerSize(); ++i) {
             super.addSlot(this.createPatternSlot(patternContainer, i, this.player.level()));
         }
         super.addSlots(patternContainer, upgradeContainer);
         this.transferManager.addBiTransfer(this.player.getInventory(), patternContainer);
+    }
+
+    @Override
+    public ItemStack quickMoveStack(final Player player, final int index) {
+        final Slot sourceSlot = this.getSlot(index);
+        final ItemStack sourceStack = sourceSlot.getItem();
+
+        /* Player inventory -> Pattern resource slots must go through PatternResourceSlot#set(ItemStack),
+         * not TransferManager's container-level destination insertion */
+        if (sourceSlot.container == this.player.getInventory()
+            && !sourceStack.isEmpty()
+            && this.getPatternResourceSlots().stream().anyMatch(patternSlot -> patternSlot.mayPlace(sourceStack))) {
+            if (this.moveToPatternSlots(sourceStack)) {
+                if (sourceStack.isEmpty()) {
+                    sourceSlot.set(ItemStack.EMPTY);
+                } else {
+                    sourceSlot.setChanged();
+                }
+                sourceSlot.onTake(player, sourceStack);
+            }
+
+            return ItemStack.EMPTY;
+        }
+
+        return super.quickMoveStack(player, index);
+    }
+
+    private boolean moveToPatternSlots(final ItemStack sourceStack) {
+        boolean moved = false;
+
+        for (final PatternResourceSlot patternSlot : this.getPatternResourceSlots()) {
+            if (sourceStack.isEmpty()) {
+                break;
+            }
+
+            if (!patternSlot.isActive() || !patternSlot.getItem().isEmpty() || !patternSlot.mayPlace(sourceStack)) {
+                continue;
+            }
+
+            final int amount = Math.min(sourceStack.getCount(), patternSlot.getMaxStackSize(sourceStack));
+            patternSlot.set(sourceStack.split(amount));
+            patternSlot.setChanged();
+            moved = true;
+        }
+
+        return moved;
+    }
+
+    @Override
+    public boolean stillValid(final Player p) {
+        if (this.stepCrafter == null) {
+            return true;
+        }
+        return Container.stillValidBlockEntity(this.stepCrafter, p);
     }
 
     private Slot createPatternSlot(final PatternResourceContainerImpl patternContainer,

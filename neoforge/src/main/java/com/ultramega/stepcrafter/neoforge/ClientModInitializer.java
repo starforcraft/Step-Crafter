@@ -10,14 +10,9 @@ import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 public class ClientModInitializer extends AbstractClientModInitializer {
-    @SubscribeEvent
-    public static void onClientSetup(final FMLClientSetupEvent e) {
-    }
-
     @SubscribeEvent
     public static void onRegisterMenuScreens(final RegisterMenuScreensEvent e) {
         registerScreens(new ScreenRegistration() {

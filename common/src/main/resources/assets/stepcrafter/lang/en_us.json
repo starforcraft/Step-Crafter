@@ -6,6 +6,7 @@
   "block.stepcrafter.step_crafting_monitor": "Step Crafting Monitor",
   "block.stepcrafter.step_requester_manager": "Step Requester Manager",
   "item.stepcrafter.slot_upgrade": "Slot Upgrade",
+  "item.stepcrafter.slot_upgrade.help": "Increases the number of filter rows by 1",
   "item.stepcrafter.step_crafter.help": "Accepts patterns for recursive autocrafting and allows setting minimum and maximum thresholds. When the output of a configured pattern falls below the minimum in the network, it will automatically craft items up to the maximum.",
   "item.stepcrafter.step_requester.help": "When a configured resource drops below its configurable minimum, it requests autocrafters to produce it in the configurable batch size until the configurable maximum is reached.",
   "item.stepcrafter.step_crafter_manager.help": "Allows managing all your step crafters from a single interface.",

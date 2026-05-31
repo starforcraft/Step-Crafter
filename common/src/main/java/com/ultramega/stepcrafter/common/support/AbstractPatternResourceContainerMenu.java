@@ -12,12 +12,12 @@ import com.refinedmods.refinedstorage.common.upgrade.UpgradeSlot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nullable;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractPatternResourceContainerMenu extends AbstractBaseContainerMenu {
     protected final Player player;

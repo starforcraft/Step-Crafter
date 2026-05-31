@@ -3,8 +3,9 @@ package com.ultramega.stepcrafter.fabric;
 import com.ultramega.stepcrafter.common.Config;
 import com.ultramega.stepcrafter.common.Platform;
 
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import org.jspecify.annotations.Nullable;
 
 public class PlatformImpl implements Platform {
     @Override
@@ -13,8 +14,8 @@ public class PlatformImpl implements Platform {
     }
 
     @Override
-    public ItemStack getCraftingRemainingItem(final ItemStack itemStack) {
-        final Item item = itemStack.getItem();
-        return !item.hasCraftingRemainingItem() || item.getCraftingRemainingItem() == null ? ItemStack.EMPTY : new ItemStack(item.getCraftingRemainingItem());
+    @Nullable
+    public ItemStackTemplate getCraftingRemainder(final ItemStack itemStack) {
+        return itemStack.getCraftingRemainder();
     }
 }

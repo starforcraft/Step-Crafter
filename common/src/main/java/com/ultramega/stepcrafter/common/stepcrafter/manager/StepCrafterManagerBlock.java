@@ -9,17 +9,17 @@ import com.refinedmods.refinedstorage.common.support.AbstractBlockEntityTicker;
 import com.refinedmods.refinedstorage.common.support.BaseBlockItem;
 import com.refinedmods.refinedstorage.common.support.network.NetworkNodeBlockEntityTicker;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
 
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 
@@ -28,8 +28,8 @@ public class StepCrafterManagerBlock extends AbstractStepManagerBlock<StepCrafte
     private static final AbstractBlockEntityTicker<StepCrafterManagerBlockEntity> TICKER =
         new NetworkNodeBlockEntityTicker<>(BlockEntities.INSTANCE::getStepCrafterManager, ACTIVE);
 
-    public StepCrafterManagerBlock(final DyeColor color, final MutableComponent name) {
-        super(HELP, color, name);
+    public StepCrafterManagerBlock(final Identifier id, final DyeColor color, final MutableComponent name) {
+        super(id, HELP, color, name);
     }
 
     @Override

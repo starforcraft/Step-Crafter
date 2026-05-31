@@ -8,68 +8,63 @@ import com.ultramega.stepcrafter.common.registry.Items;
 import com.ultramega.stepcrafter.common.stepcrafter.task.StepTask;
 import com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskImpl;
 import com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskSnapshot;
+import com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskSnapshotCodecs;
 import com.ultramega.stepcrafter.common.support.AbstractEditableNameBlockEntity;
 import com.ultramega.stepcrafter.common.support.PatternMinMax;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
+import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerContents;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerData;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceContainerImpl;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink.Result;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkId;
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
-import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.ExternalPatternSinkKeyProvider;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.common.api.autocrafting.PlatformPatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
-import com.refinedmods.refinedstorage.common.autocrafting.PatternInventory;
 import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.AutocrafterData;
-import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.InWorldExternalPatternSinkKey;
 import com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock;
-import com.refinedmods.refinedstorage.common.support.BlockEntityWithDrops;
 import com.refinedmods.refinedstorage.common.support.containermenu.ExtendedMenuProvider;
 import com.refinedmods.refinedstorage.common.support.network.SimpleConnectionStrategy;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
-import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamEncoder;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock.tryExtractDirection;
-import static com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskSnapshotPersistence.decodeSnapshot;
-import static com.ultramega.stepcrafter.common.stepcrafter.task.StepTaskSnapshotPersistence.encodeSnapshot;
 
 public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<StepCrafterNetworkNode>
-    implements ExtendedMenuProvider<StepCrafterData>, BlockEntityWithDrops, PatternInventory.Listener,
-    PatternProviderExternalPatternSink, ExternalPatternSinkKeyProvider {
+    implements ExtendedMenuProvider<StepCrafterData>, PatternProviderExternalPatternSink {
     static final int UPGRADES = 8;
     static final int PATTERNS = 9 * 5;
 
@@ -77,10 +72,12 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
 
     private static final String TAG_UPGRADES = "upgr";
     private static final String TAG_PATTERNS = "patterns";
+    private static final String TAG_PATTERN_RESOURCES = "patternResources";
     private static final String TAG_PRIORITY = "pri";
     private static final String TAG_TASKS = "tasks";
     private static final String TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER = "vstm";
     private static final String TAG_INSERT_INTO_POINTED_CONTAINER = "iipc";
+    private static final String TAG_ID = "auid";
 
     private final PatternResourceContainerImpl patternResourceContainer;
     private final UpgradeContainer upgradeContainer;
@@ -90,7 +87,7 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     @Nullable
     private PlatformPatternProviderExternalPatternSink sink;
     @Nullable
-    private ExternalPatternSinkKey sinkKey;
+    private ExternalPatternSinkId id;
 
     private int speed = 0;
     private int slotUpgradesCount = 0;
@@ -110,16 +107,14 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
             this.speed = Math.clamp((long) c.getAmount(com.refinedmods.refinedstorage.common.content.Items.INSTANCE.getSpeedUpgrade())
                 * Platform.INSTANCE.getConfig().getStepCrafter().getSpeedMultiplier(), 0, Integer.MAX_VALUE);
             this.slotUpgradesCount = c.getAmount(Items.INSTANCE.getSlotUpgrade());
-            this.setChanged();
-        });
-        this.patternResourceContainer.addListener(container -> {
+        }, this::setChanged);
+        this.patternResourceContainer.setListener(() -> {
             final long upgradeEnergyUsage = this.upgradeContainer.getEnergyUsage();
             final long baseEnergyUsage = Platform.INSTANCE.getConfig().getStepCrafter().getEnergyUsage();
             final long patternEnergyUsage = this.patternResourceContainer.getEnergyUsage();
             this.mainNetworkNode.setEnergyUsage(baseEnergyUsage + patternEnergyUsage + upgradeEnergyUsage);
-            this.setChanged();
+            StepCrafterBlockEntity.this.setChanged();
         });
-        this.patternResourceContainer.setListener(this);
         this.patternResourceContainer.setChangedListener(this::onPatternResourcesChange);
         this.mainNetworkNode.setBlockEntity(this);
     }
@@ -134,12 +129,12 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         );
     }
 
-    static PatternResourceContainerImpl createPatternResourcesContainer(final Supplier<@NullableType Level> levelSupplier, final Supplier<Integer> amountSupplier) {
+    static PatternResourceContainerImpl createPatternResourcesContainer(final Supplier<@Nullable Level> levelSupplier, final Supplier<Integer> amountSupplier) {
         return new PatternResourceContainerImpl(PATTERNS, levelSupplier, null, null, false, amountSupplier);
     }
 
     static PatternResourceContainerImpl createPatternResourcesContainer(final StepCrafterData data,
-                                                                        final Supplier<@NullableType Level> levelSupplier,
+                                                                        final Supplier<@Nullable Level> levelSupplier,
                                                                         final Supplier<Integer> amountSupplier) {
         final PatternResourceContainerImpl exportedResourcesContainer = createPatternResourcesContainer(levelSupplier, amountSupplier);
         final PatternResourceContainerData resourceContainerData = data.patternResources();
@@ -200,66 +195,63 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     }
 
     @Override
-    public void saveAdditional(final CompoundTag tag, final HolderLookup.Provider provider) {
-        super.saveAdditional(tag, provider);
-        tag.put(TAG_PATTERNS, this.patternResourceContainer.createTag(provider));
-        tag.put(TAG_UPGRADES, ContainerUtil.write(this.upgradeContainer, provider));
-        final ListTag tasks = new ListTag();
+    public void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
+        output.store(TAG_PATTERNS, ItemContainerContents.CODEC, ItemContainerContents.fromItems(this.patternResourceContainer.getItems()));
+        output.store(TAG_PATTERN_RESOURCES, PatternResourceContainerContents.CODEC,
+            PatternResourceContainerContents.of(this.patternResourceContainer));
+        output.store(TAG_UPGRADES, ItemContainerContents.CODEC, ItemContainerContents.fromItems(this.upgradeContainer.getItems()));
+        output.store(TAG_TASKS, StepTaskSnapshotCodecs.LIST_CODEC, this.collectTaskSnapshots());
+        if (this.id != null) {
+            output.store(TAG_ID, UUIDUtil.CODEC, this.id.id());
+        }
+    }
+
+    @Override
+    public void loadAdditional(final ValueInput input) {
+        input.read(TAG_PATTERNS, ItemContainerContents.CODEC)
+            .ifPresent(contents -> contents.copyInto(this.patternResourceContainer.getItems()));
+        input.read(TAG_PATTERN_RESOURCES, PatternResourceContainerContents.CODEC)
+            .ifPresent(this.patternResourceContainer::load);
+        input.read(TAG_UPGRADES, ItemContainerContents.CODEC).ifPresent(this.upgradeContainer::load);
+        input.read(TAG_TASKS, StepTaskSnapshotCodecs.LIST_CODEC)
+            .ifPresent(snapshots ->
+                snapshots.forEach(snapshot -> this.mainNetworkNode.addTask(new StepTaskImpl(snapshot))));
+        if (this.level != null && !this.level.isClientSide()) {
+            this.onPatternChanged();
+        }
+        this.id = new ExternalPatternSinkId(input.read(TAG_ID, UUIDUtil.CODEC).orElseGet(UUID::randomUUID));
+        super.loadAdditional(input);
+    }
+
+    @Override
+    public void writeConfiguration(final ValueOutput output) {
+        super.writeConfiguration(output);
+        output.putInt(TAG_PRIORITY, this.mainNetworkNode.getPriority());
+        output.putBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER, this.visibleToTheStepCrafterManager);
+        output.putBoolean(TAG_INSERT_INTO_POINTED_CONTAINER, this.insertIntoPointedContainer);
+    }
+
+    @Override
+    public void readConfiguration(final ValueInput input) {
+        super.readConfiguration(input);
+        input.getInt(TAG_PRIORITY).ifPresent(this.mainNetworkNode::setPriority);
+        this.visibleToTheStepCrafterManager = input.getBooleanOr(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER, true);
+        this.insertIntoPointedContainer = input.getBooleanOr(TAG_INSERT_INTO_POINTED_CONTAINER, false);
+    }
+
+    private List<StepTaskSnapshot> collectTaskSnapshots() {
+        final List<StepTaskSnapshot> snapshots = new ArrayList<>();
         for (final StepTask task : this.mainNetworkNode.getTasks()) {
             if (task instanceof StepTaskImpl taskImpl) {
                 try {
-                    tasks.add(encodeSnapshot(taskImpl.createSnapshot()));
+                    snapshots.add(taskImpl.createSnapshot());
                 } catch (final Exception e) {
-                    LOGGER.error("Error while saving step task {} {}", task.getResource(), task.getAmount(), e);
+                    LOGGER.error("Error while creating snapshot for step task {} {}", task.getResource(), task.getAmount(), e);
                 }
             }
         }
-        tag.put(TAG_TASKS, tasks);
-    }
-
-    @Override
-    public void writeConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
-        super.writeConfiguration(tag, provider);
-        tag.putInt(TAG_PRIORITY, this.mainNetworkNode.getPriority());
-        tag.putBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER, this.visibleToTheStepCrafterManager);
-        tag.putBoolean(TAG_INSERT_INTO_POINTED_CONTAINER, this.insertIntoPointedContainer);
-    }
-
-    @Override
-    public void loadAdditional(final CompoundTag tag, final HolderLookup.Provider provider) {
-        if (tag.contains(TAG_PATTERNS)) {
-            this.patternResourceContainer.fromTag(tag.getList(TAG_PATTERNS, Tag.TAG_COMPOUND), provider);
-        }
-        if (tag.contains(TAG_UPGRADES)) {
-            ContainerUtil.read(tag.getCompound(TAG_UPGRADES), this.upgradeContainer, provider);
-        }
-        if (tag.contains(TAG_TASKS)) {
-            final ListTag tasks = tag.getList(TAG_TASKS, Tag.TAG_COMPOUND);
-            for (int i = 0; i < tasks.size(); ++i) {
-                final CompoundTag taskTag = tasks.getCompound(i);
-                try {
-                    final StepTaskSnapshot snapshot = decodeSnapshot(taskTag);
-                    this.mainNetworkNode.addTask(new StepTaskImpl(snapshot));
-                } catch (final Exception e) {
-                    LOGGER.error("Error while loading step task, skipping", e);
-                }
-            }
-        }
-        super.loadAdditional(tag, provider);
-    }
-
-    @Override
-    public void readConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
-        super.readConfiguration(tag, provider);
-        if (tag.contains(TAG_PRIORITY)) {
-            this.mainNetworkNode.setPriority(tag.getInt(TAG_PRIORITY));
-        }
-        if (tag.contains(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER)) {
-            this.visibleToTheStepCrafterManager = tag.getBoolean(TAG_VISIBLE_TO_THE_STEP_CRAFTER_MANAGER);
-        }
-        if (tag.contains(TAG_INSERT_INTO_POINTED_CONTAINER)) {
-            this.insertIntoPointedContainer = tag.getBoolean(TAG_INSERT_INTO_POINTED_CONTAINER);
-        }
+        return snapshots;
     }
 
     @Override
@@ -273,18 +265,21 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     }
 
     @Override
-    public NonNullList<ItemStack> getDrops() {
-        final NonNullList<ItemStack> drops = NonNullList.create();
-        drops.addAll(this.upgradeContainer.getDrops());
-        for (int i = 0; i < this.patternResourceContainer.getContainerSize(); ++i) {
-            drops.add(this.patternResourceContainer.getItem(i));
+    public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (this.level != null) {
+            final NonNullList<ItemStack> drops = NonNullList.create();
+            drops.addAll(this.upgradeContainer.getDrops());
+            for (int i = 0; i < this.patternResourceContainer.getContainerSize(); ++i) {
+                drops.add(this.patternResourceContainer.getItem(i));
+            }
+            Containers.dropContents(this.level, pos, drops);
         }
-        return drops;
     }
 
     private void onPatternResourcesChange(final int index) {
         this.setChanged();
-        this.patternChanged(index);
+        this.onPatternChanged(index);
     }
 
     int getPriority() {
@@ -317,11 +312,8 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     @Override
     public void setLevel(final Level level) {
         super.setLevel(level);
-        if (level.isClientSide()) {
-            return;
-        }
-        for (int i = 0; i < this.patternResourceContainer.getContainerSize(); ++i) {
-            this.patternChanged(i);
+        if (!level.isClientSide()) {
+            this.onPatternChanged();
         }
     }
 
@@ -330,25 +322,33 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         super.initialize(level, direction);
         final Direction incomingDirection = direction.getOpposite();
         final BlockPos sourcePosition = this.worldPosition.relative(direction);
-        this.invalidateSinkKey();
-        this.sink = RefinedStorageApi.INSTANCE.getPatternProviderExternalPatternSinkFactory()
+        if (this.id == null) {
+            this.id = ExternalPatternSinkId.create();
+        }
+        this.sink = com.refinedmods.refinedstorage.common.Platform.INSTANCE.getPatternProviderExternalPatternSinkFactory()
             .create(level, sourcePosition, incomingDirection);
     }
 
-    @Override
-    public void patternChanged(final int slot) {
+    private void onPatternChanged() {
         if (this.level == null) {
             return;
         }
-        final Pattern pattern = RefinedStorageApi.INSTANCE.getPattern(this.patternResourceContainer.getItem(slot), this.level)
+        for (int i = 0; i < this.patternResourceContainer.getContainerSize(); ++i) {
+            this.onPatternChanged(i);
+        }
+    }
+
+    private void onPatternChanged(final int index) {
+        if (this.level == null) {
+            return;
+        }
+        final Pattern pattern = RefinedStorageApi.INSTANCE.getPattern(this.patternResourceContainer.getItem(index), this.level)
             .orElse(null);
-        final ResourceMinMaxAmount resource = this.patternResourceContainer.get(slot);
-        this.mainNetworkNode.setPattern(
-            slot,
-            pattern != null && resource != null
-                ? new PatternMinMax(pattern, resource.minAmount(), resource.maxAmount(), resource.batchSize())
-                : null
-        );
+        final ResourceMinMaxAmount resource = this.patternResourceContainer.get(index);
+        final PatternMinMax patternMinMax = pattern != null && resource != null
+            ? new PatternMinMax(pattern, resource.minAmount(), resource.maxAmount(), resource.batchSize())
+            : null;
+        this.mainNetworkNode.tryUpdatePattern(index, patternMinMax);
     }
 
     @Override
@@ -370,50 +370,15 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         return this.level.getBlockEntity(neighborPos);
     }
 
-    @Override
-    @Nullable
-    public ExternalPatternSinkKey getKey() {
-        if (this.sinkKey == null) {
-            this.tryUpdateSinkKey();
-        }
-        return this.sinkKey;
-    }
-
-    private void tryUpdateSinkKey() {
-        if (!(this.level instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        final Direction direction = tryExtractDirection(this.getBlockState());
-        if (direction == null) {
-            return;
-        }
-        final BlockEntity connectedMachine = this.getConnectedMachine();
-        if (connectedMachine == null) {
-            this.invalidateSinkKey();
-            return;
-        }
-        final BlockState connectedMachineState = connectedMachine.getBlockState();
-        final Player fakePlayer = this.getFakePlayer(serverLevel);
-        final ItemStack connectedMachineStack = com.refinedmods.refinedstorage.common.Platform.INSTANCE.getBlockAsItemStack(
-            connectedMachineState.getBlock(),
-            connectedMachineState,
-            direction.getOpposite(),
-            serverLevel,
-            connectedMachine.getBlockPos(),
-            fakePlayer
-        );
-        this.sinkKey = new InWorldExternalPatternSinkKey(this.getName().getString(), connectedMachineStack);
-    }
-
-    private void invalidateSinkKey() {
-        this.sinkKey = null;
+    public @Nullable ExternalPatternSinkId getId() {
+        return this.id;
     }
 
     @Override
-    public Result accept(final Collection<ResourceAmount> resources, final Action action) {
+    public ExternalPatternSink.Result insertAll(final Collection<ResourceAmount> resources, final Action action) {
         if (this.sink == null || !this.insertIntoPointedContainer) {
             return ExternalPatternSink.Result.SKIPPED;
         }
-        return this.sink.accept(resources, action);
+        return this.sink.insertAll(resources, action);
     }
 }

@@ -11,7 +11,8 @@ import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes
 import com.refinedmods.refinedstorage.common.support.widget.RedstoneModeSideButtonWidget;
 import com.refinedmods.refinedstorage.common.support.widget.TextMarquee;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -33,28 +34,23 @@ public class StepRequesterScreen extends AbstractEditableNameScreen<StepRequeste
     }
 
     @Override
-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float delta) {
-        super.render(graphics, mouseX, mouseY, delta);
+    protected void renderResourceSlots(final GuiGraphicsExtractor graphics) {
+        for (final PatternResourceSlot slot : this.getMenu().getPatternResourceSlots()) {
+            if (slot.isActive()) {
+                PatternResourceSlotRendering.render(graphics, slot);
+            }
+        }
         this.renderSlotMinMax(graphics, true);
     }
 
     @Override
-    protected void renderResourceSlots(final GuiGraphics graphics) {
-        for (final PatternResourceSlot slot : this.getMenu().getPatternResourceSlots()) {
-            if (slot.isActive()) {
-                PatternResourceSlotRendering.render(graphics, slot, this.leftPos, this.topPos);
-            }
-        }
-    }
-
-    @Override
-    public boolean mouseClicked(final double mouseX, final double mouseY, final int clickedButton) {
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
         if (this.hoveredSlot instanceof PatternResourceSlot resourceSlot && resourceSlot.isActive()) {
             if (!this.tryOpenResourceAmountScreen(resourceSlot, true, false)) {
-                Platform.INSTANCE.sendPacketToServer(new PatternResourceSlotChangePacket(this.hoveredSlot.index, clickedButton == 1));
+                Platform.INSTANCE.sendPacketToServer(new PatternResourceSlotChangePacket(this.hoveredSlot.index, event.button() == 1));
             }
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, clickedButton);
+        return super.mouseClicked(event, doubleClick);
     }
 }

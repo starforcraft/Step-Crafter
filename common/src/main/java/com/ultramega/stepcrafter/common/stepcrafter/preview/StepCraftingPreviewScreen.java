@@ -9,24 +9,21 @@ import com.refinedmods.refinedstorage.common.support.amount.AmountScreenConfigur
 import com.refinedmods.refinedstorage.common.support.amount.DoubleAmountOperations;
 import com.refinedmods.refinedstorage.common.support.widget.CheckboxWidget;
 
-import javax.annotation.Nullable;
-
-import com.google.common.util.concurrent.RateLimiter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterIdentifier;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 
-public class StepCraftingPreviewScreen extends AbstractAmountScreen<StepCraftingPreviewContainerMenu, Double>
-    implements StepCraftingPreviewListener {
-    private static final ResourceLocation TEXTURE = createStepCrafterIdentifier("textures/gui/step_crafting_preview.png");
+public class StepCraftingPreviewScreen extends AbstractAmountScreen<StepCraftingPreviewContainerMenu, Double> {
+    private static final Identifier TEXTURE = createStepCrafterIdentifier("textures/gui/step_crafting_preview.png");
     private static final MutableComponent TITLE = createStepCrafterTranslation("gui", "stepcrafting_preview.title");
     private static final MutableComponent START = createTranslation("gui", "autocrafting_preview.start");
     private static final MutableComponent PENDING = createTranslation("gui", "autocrafting_preview.pending");
@@ -38,8 +35,6 @@ public class StepCraftingPreviewScreen extends AbstractAmountScreen<StepCrafting
 
     @Nullable
     private CheckboxWidget notifyCheckbox;
-
-    private final RateLimiter requestRateLimiter = RateLimiter.create(1);
 
     private boolean requestedCancellation;
 
@@ -74,11 +69,10 @@ public class StepCraftingPreviewScreen extends AbstractAmountScreen<StepCrafting
                 .withResetAmount(1D)
                 .withConfirmButtonText(START)
                 .build(),
-            DoubleAmountOperations.INSTANCE
+            DoubleAmountOperations.INSTANCE,
+            254,
+            142
         );
-        this.imageWidth = 254;
-        this.imageHeight = 142;
-        this.getMenu().setListener(this);
     }
 
     @Override
@@ -111,7 +105,7 @@ public class StepCraftingPreviewScreen extends AbstractAmountScreen<StepCrafting
     }
 
     @Override
-    protected ResourceLocation getTexture() {
+    protected Identifier getTexture() {
         return TEXTURE;
     }
 
@@ -123,11 +117,11 @@ public class StepCraftingPreviewScreen extends AbstractAmountScreen<StepCrafting
         this.getAndValidateAmount().ifPresentOrElse(amount -> {
             this.confirmButton.active = true;
             this.confirmButton.setIcon(ActionIcon.START);
-            this.amountField.setTextColor(0xFFFFFF);
+            this.amountField.setTextColor(0xFFFFFFFF);
         }, () -> {
             this.confirmButton.active = false;
             this.confirmButton.setIcon(ActionIcon.ERROR);
-            this.amountField.setTextColor(0xFF5555);
+            this.amountField.setTextColor(0xFFFF5555);
         });
     }
 

@@ -5,7 +5,7 @@ import com.refinedmods.refinedstorage.common.support.widget.AbstractYesNoSideBut
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterIdentifier;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
@@ -15,9 +15,9 @@ public class InsertIntoPointedContainerSideButtonWidget extends AbstractYesNoSid
         createStepCrafterTranslation("gui", "step_crafter.insert_into_pointed_container");
     private static final MutableComponent HELP =
         createStepCrafterTranslation("gui", "step_crafter.insert_into_pointed_container.help");
-    private static final ResourceLocation YES =
+    private static final Identifier YES =
         createStepCrafterIdentifier("widget/side_button/insert_into_pointed_container/yes");
-    private static final ResourceLocation NO =
+    private static final Identifier NO =
         createStepCrafterIdentifier("widget/side_button/insert_into_pointed_container/no");
 
     public InsertIntoPointedContainerSideButtonWidget(final ClientProperty<Boolean> property) {

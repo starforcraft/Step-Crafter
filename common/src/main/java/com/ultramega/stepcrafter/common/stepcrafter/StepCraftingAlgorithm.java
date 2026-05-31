@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import org.jspecify.annotations.Nullable;
 
 public final class StepCraftingAlgorithm {
     private StepCraftingAlgorithm() {
@@ -80,9 +80,11 @@ public final class StepCraftingAlgorithm {
         // Add byproducts
         for (final ResolvedIngredient resolved : resolvedInputs.values()) {
             if (resolved.extractedResource() instanceof ItemResource itemResource) {
-                final ItemStack remainingItem = Platform.INSTANCE.getCraftingRemainingItem(itemResource.toItemStack());
-                if (!remainingItem.isEmpty()) {
-                    totalResources.add(new ResourceAmount(ItemResource.ofItemStack(remainingItem), remainingItem.getCount()));
+                final ItemStackTemplate remainingItem = Platform.INSTANCE.getCraftingRemainder(itemResource.toItemStack());
+                if (remainingItem != null) {
+                    final ItemResource resource = new ItemResource(remainingItem.item().value(), remainingItem.components());
+                    final long remainderAmount = Math.multiplyExact(remainingItem.count(), resolved.ingredient().amount());
+                    totalResources.add(new ResourceAmount(resource, remainderAmount));
                 }
             }
         }

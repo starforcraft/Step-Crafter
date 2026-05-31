@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_step_crafter": {
+      "conditions": {
+        "items": [
+          {
+            "items": "stepcrafter:step_crafter"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "stepcrafter:step_crafting_monitor"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_step_crafter"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "stepcrafter:step_crafting_monitor"
+    ]
+  }
+}

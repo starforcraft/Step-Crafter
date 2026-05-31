@@ -6,20 +6,19 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import org.joml.Matrix4f;
+import net.minecraft.resources.Identifier;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.MOD_ID;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterIdentifier;
+import static net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED;
 
 public class MaintainableClientTooltipComponent implements ClientTooltipComponent {
-    private static final ResourceLocation ICON_STOCK = createStepCrafterIdentifier("grid/stock");
-    private static final ResourceLocation ICON_CRAFTABLE = createIdentifier("grid/craftable");
+    private static final Identifier ICON_STOCK = createStepCrafterIdentifier("grid/stock");
+    private static final Identifier ICON_CRAFTABLE = createIdentifier("grid/craftable");
     private static final int ICON_SIZE_STOCK = 8;
     private static final int ICON_SIZE_CRAFTABLE = 9;
     private static final int ICON_MARGIN = 4;
@@ -49,7 +48,7 @@ public class MaintainableClientTooltipComponent implements ClientTooltipComponen
     }
 
     @Override
-    public int getHeight() {
+    public int getHeight(final Font font) {
         return this.iconSize + 2;
     }
 
@@ -59,26 +58,25 @@ public class MaintainableClientTooltipComponent implements ClientTooltipComponen
     }
 
     @Override
-    public void renderText(final Font font,
-                           final int x,
-                           final int y,
-                           final Matrix4f matrix,
-                           final MultiBufferSource.BufferSource bufferSource) {
+    public void extractText(final GuiGraphicsExtractor graphics,
+                            final Font font,
+                            final int x,
+                            final int y) {
         final int yOffset = SmallText.isSmall() ? 2 : 0;
         SmallText.render(
+            graphics,
             font,
             this.text.getVisualOrderText(),
             x + this.iconSize + ICON_MARGIN,
             y + yOffset,
             MaintainableResourceHint.MAINTAINABLE.getColor(),
-            matrix,
-            bufferSource,
+            true,
             SmallText.TOOLTIP_SCALE
         );
     }
 
     @Override
-    public void renderImage(final Font font, final int x, final int y, final GuiGraphics graphics) {
-        graphics.blitSprite(this.isStockIcon ? ICON_STOCK : ICON_CRAFTABLE, x, y, this.iconSize, this.iconSize);
+    public void extractImage(final Font font, final int x, final int y, final int width, final int height, final GuiGraphicsExtractor graphics) {
+        graphics.blitSprite(GUI_TEXTURED, this.isStockIcon ? ICON_STOCK : ICON_CRAFTABLE, x, y, this.iconSize, this.iconSize);
     }
 }

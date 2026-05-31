@@ -2,7 +2,7 @@ package com.ultramega.stepcrafter.common.stepcrafter;
 
 import com.ultramega.stepcrafter.common.registry.BlockEntities;
 
-import com.refinedmods.refinedstorage.common.content.BlockConstants;
+import com.refinedmods.refinedstorage.common.content.BlockProperties;
 import com.refinedmods.refinedstorage.common.support.AbstractBlockEntityTicker;
 import com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock;
 import com.refinedmods.refinedstorage.common.support.BaseBlockItem;
@@ -12,12 +12,11 @@ import com.refinedmods.refinedstorage.common.support.direction.DefaultDirectionT
 import com.refinedmods.refinedstorage.common.support.direction.DirectionType;
 import com.refinedmods.refinedstorage.common.support.network.NetworkNodeBlockEntityTicker;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -27,6 +26,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import org.jspecify.annotations.Nullable;
 
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 
@@ -39,11 +39,13 @@ public class StepCrafterBlock extends AbstractDirectionalBlock<Direction> implem
         ACTIVE
     );
 
+    private final Identifier id;
     private final MutableComponent name;
 
-    public StepCrafterBlock(final MutableComponent name) {
-        super(BlockConstants.PROPERTIES);
+    public StepCrafterBlock(final Identifier id, final MutableComponent name) {
+        super(BlockProperties.stone(id));
         this.name = name;
+        this.id = id;
     }
 
     @Override
@@ -77,7 +79,7 @@ public class StepCrafterBlock extends AbstractDirectionalBlock<Direction> implem
 
     @Override
     public BaseBlockItem createBlockItem() {
-        return new NetworkNodeBlockItem(this, HELP);
+        return new NetworkNodeBlockItem(this.id, this, HELP);
     }
 
     @Override

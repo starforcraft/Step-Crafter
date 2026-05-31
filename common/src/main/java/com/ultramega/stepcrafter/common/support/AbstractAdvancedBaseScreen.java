@@ -1,10 +1,10 @@
 package com.ultramega.stepcrafter.common.support;
 
+import com.ultramega.stepcrafter.common.mixin.AbstractContainerScreenAccessor;
 import com.ultramega.stepcrafter.common.resourceconfiguration.ResourceConfigurationScreen;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceFactory;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
@@ -18,29 +18,30 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Matrix3x2fStack;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslationAsHeading;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterIdentifier;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslationAsHeading;
+import static net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED;
 
 public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu> extends AbstractBaseScreen<T> {
-    public static final ResourceLocation FINISHED_INDICATOR = createStepCrafterIdentifier("finished");
+    public static final Identifier FINISHED_INDICATOR = createStepCrafterIdentifier("finished");
     public static final MutableComponent FINISHED_INDICATOR_TOOLTIP = createStepCrafterTranslation("gui", "filter_slot.finished");
     public static final MutableComponent CRAFTING_INDICATOR_TOOLTIP = createStepCrafterTranslation("gui", "filter_slot.crafting");
     public static final MutableComponent NOT_ENOUGH_INGREDIENTS_INDICATOR_TOOLTIP = createStepCrafterTranslation("gui", "filter_slot.not_enough_ingredients");
@@ -58,72 +59,70 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
     private static final ClientTooltipComponent EMPTY_PATTERN_SLOT = ClientTooltipComponent.create(
         createTranslationAsHeading("gui", "autocrafter.empty_pattern_slot").getVisualOrderText());
 
-    private static final ResourceLocation TEXTURE_0 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_0.png");
-    private static final ResourceLocation TEXTURE_1 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_1.png");
-    private static final ResourceLocation TEXTURE_2 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_2.png");
-    private static final ResourceLocation TEXTURE_3 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_3.png");
-    private static final ResourceLocation TEXTURE_4 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_4.png");
+    private static final Identifier TEXTURE_0 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_0.png");
+    private static final Identifier TEXTURE_1 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_1.png");
+    private static final Identifier TEXTURE_2 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_2.png");
+    private static final Identifier TEXTURE_3 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_3.png");
+    private static final Identifier TEXTURE_4 = createStepCrafterIdentifier("textures/gui/step_crafter_requester_4.png");
 
     protected final Inventory playerInventory;
 
     private int lastAmountSlotUpgrades = -1;
 
-    public AbstractAdvancedBaseScreen(final T menu, final Inventory playerInventory, final Component title) {
-        super(menu, playerInventory, title);
+    public AbstractAdvancedBaseScreen(final T menu, final Inventory playerInventory, final Component title, final int width, final int height) {
+        super(menu, playerInventory, title, width, height);
         this.playerInventory = playerInventory;
-        this.imageWidth = 228;
         this.determineStuff();
     }
 
-    protected AbstractAdvancedBaseScreen(final T menu, final Inventory playerInventory, final TextMarquee title) {
-        super(menu, playerInventory, title);
+    protected AbstractAdvancedBaseScreen(final T menu, final Inventory playerInventory, final TextMarquee title, final int width, final int height) {
+        super(menu, playerInventory, title, width, height);
         this.playerInventory = playerInventory;
-        this.imageWidth = 228;
         this.determineStuff();
     }
 
     @Override
-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float delta) {
+    public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float a) {
         this.determineStuff();
-        super.render(graphics, mouseX, mouseY, delta);
+        super.extractRenderState(graphics, mouseX, mouseY, a);
     }
 
-    protected void renderSlotMinMax(final GuiGraphics graphics, final boolean showBatchSize) {
+    protected void renderSlotMinMax(final GuiGraphicsExtractor graphics, final boolean showBatchSize) {
         if (!(this.getMenu() instanceof AbstractPatternResourceContainerMenu patternContainerMenu)) {
             return;
         }
 
         for (final PatternResourceSlot slot : patternContainerMenu.getPatternResourceSlots()) {
-            drawSlotMinMax(graphics, this.font, slot, this.leftPos, this.topPos, showBatchSize);
+            drawSlotMinMax(graphics, this.font, slot, 0, 0, showBatchSize);
         }
     }
 
-    public static void drawSlotMinMax(final GuiGraphics graphics,
+    public static void drawSlotMinMax(final GuiGraphicsExtractor graphics,
                                       final Font font,
                                       final PatternResourceSlot slot,
                                       final int leftPos,
                                       final int topPos,
                                       final boolean showBatchSize) {
-        final PoseStack poseStack = graphics.pose();
+        final Matrix3x2fStack poseStack = graphics.pose();
         if (slot.isActive() && slot.getResource() != null) {
             final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(slot.getResource().getClass());
             final String formattedMinAmount = rendering.formatAmount(slot.getMinAmount(), true);
             final String formattedMaxAmount = rendering.formatAmount(slot.getMaxAmount(), true);
 
-            poseStack.pushPose();
-            poseStack.translate(leftPos + slot.x, topPos + slot.y, 260F);
-            poseStack.scale(0.5F, 0.5F, 0.5F);
+            poseStack.pushMatrix();
+            poseStack.translate(leftPos + slot.x, topPos + slot.y);
+            poseStack.scale(0.5F, 0.5F);
 
-            graphics.drawString(font, formattedMinAmount, 0, 0, 0xFFFFFF);
+            graphics.text(font, formattedMinAmount, 0, 0, 0xFFFFFFFF);
             if (showBatchSize) {
                 final String formattedBatchSize = rendering.formatAmount(slot.getBatchSize(), true);
-                graphics.drawString(font, formattedBatchSize, 0, 12, 0xFFFFFF);
+                graphics.text(font, formattedBatchSize, 0, 12, 0xFFFFFFFF);
             }
-            graphics.drawString(font, formattedMaxAmount, 0, 24, 0xFFFFFF);
+            graphics.text(font, formattedMaxAmount, 0, 24, 0xFFFFFFFF);
 
-            graphics.blitSprite(ResourceStatusClientHelper.getIcon(slot.getStatus()), 22, -2, 10, 10);
+            graphics.blitSprite(GUI_TEXTURED, ResourceStatusClientHelper.getIcon(slot.getStatus()), 22, -2, 10, 10);
 
-            poseStack.popPose();
+            poseStack.popMatrix();
         }
     }
 
@@ -137,7 +136,7 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
         }
 
         this.inventoryLabelY = 42 + amountSlotUpgrades * 18;
-        this.imageHeight = 137 + amountSlotUpgrades * 18;
+        ((AbstractContainerScreenAccessor) this).setImageHeight(137 + amountSlotUpgrades * 18);
         if (this.lastAmountSlotUpgrades != -1) {
             this.init();
         }
@@ -149,7 +148,7 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
         return tryOpenResourceAmountScreen(this.minecraft, this.getMenu(), this.playerInventory, this, slot, showBatchSize, hasToPressShift);
     }
 
-    public static boolean tryOpenResourceAmountScreen(@Nullable final Minecraft minecraft,
+    public static boolean tryOpenResourceAmountScreen(final Minecraft minecraft,
                                                       final AbstractContainerMenu containerMenu,
                                                       final Inventory playerInventory,
                                                       final Screen parent,
@@ -157,19 +156,19 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
                                                       final boolean showBatchSize,
                                                       final boolean hasToPressShift) {
         final boolean isFilterSlot = slot.getResource() != null;
-        final boolean isNotTryingToRemoveFilter = hasToPressShift == hasShiftDown();
+        final boolean isNotTryingToRemoveFilter = hasToPressShift == minecraft.hasShiftDown();
         final boolean isNotCarryingItem = containerMenu.getCarried().isEmpty();
         final boolean canOpen = isFilterSlot
             && isNotTryingToRemoveFilter
             && isNotCarryingItem;
-        if (canOpen && minecraft != null) {
+        if (canOpen) {
             minecraft.setScreen(new ResourceConfigurationScreen(parent, playerInventory, slot, showBatchSize));
         }
         return canOpen;
     }
 
     @Override
-    protected void renderTooltip(final GuiGraphics graphics, final int x, final int y) {
+    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int x, final int y) {
         if (this.hoveredSlot instanceof PatternResourceSlot patternSlot) {
             final List<ClientTooltipComponent> tooltip;
             if (!patternSlot.isEmpty() && this.isHovering(patternSlot.x + 12, patternSlot.y - 7, 10, 10, x, y)) {
@@ -179,11 +178,11 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
             }
 
             if (!tooltip.isEmpty()) {
-                Platform.INSTANCE.renderTooltip(graphics, tooltip, x, y);
+                graphics.tooltip(this.font, tooltip, x, y, DefaultTooltipPositioner.INSTANCE, null);
                 return;
             }
         }
-        super.renderTooltip(graphics, x, y);
+        super.extractTooltip(graphics, x, y);
     }
 
     public final List<ClientTooltipComponent> getPatternResourceSlotTooltip(final ItemStack carried, final PatternResourceSlot slot) {
@@ -267,7 +266,7 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
     }
 
     @Override
-    protected ResourceLocation getTexture() {
+    protected Identifier getTexture() {
         return switch (this.lastAmountSlotUpgrades) {
             case 1 -> TEXTURE_1;
             case 2 -> TEXTURE_2;

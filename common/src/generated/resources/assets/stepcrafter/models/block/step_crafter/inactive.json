@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "refinedstorage:block/bottom",
+    "east": "stepcrafter:block/step_crafter/side_inactive",
+    "north": "stepcrafter:block/step_crafter/side_inactive",
+    "particle": "stepcrafter:block/step_crafter/side_inactive",
+    "south": "stepcrafter:block/step_crafter/side_inactive",
+    "up": "stepcrafter:block/step_crafter/top",
+    "west": "stepcrafter:block/step_crafter/side_inactive"
+  }
+}

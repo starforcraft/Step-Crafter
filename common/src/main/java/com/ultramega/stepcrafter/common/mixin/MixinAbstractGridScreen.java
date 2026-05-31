@@ -17,18 +17,17 @@ import com.refinedmods.refinedstorage.common.support.stretching.AbstractStretchi
 import com.refinedmods.refinedstorage.common.support.widget.TextMarquee;
 
 import java.util.List;
-import javax.annotation.Nullable;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -42,19 +41,44 @@ import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createS
 
 @Mixin(AbstractGridScreen.class)
 public abstract class MixinAbstractGridScreen<T extends AbstractGridContainerMenu> extends AbstractStretchingScreen<T> {
-    protected MixinAbstractGridScreen(final T menu,
-                                      final Inventory playerInventory,
-                                      final TextMarquee title) {
-        super(menu, playerInventory, title);
+    @Unique
+    private boolean stepcrafter$renderingPinnedResource;
+
+    protected MixinAbstractGridScreen(final T menu, final Inventory playerInventory, final TextMarquee title, final int width, final int height) {
+        super(menu, playerInventory, title, width, height);
+    }
+
+    @Inject(method = "renderPinnedResource", at = @At("HEAD"), remap = false)
+    private void stepcrafter$beginRenderingPinnedResource(final GuiGraphicsExtractor graphics,
+                                                          final int idx,
+                                                          final int slotX,
+                                                          final int slotY,
+                                                          final boolean hovering,
+                                                          final float partialTicks,
+                                                          final CallbackInfo ci) {
+        this.stepcrafter$renderingPinnedResource = true;
+    }
+
+    @Inject(method = "renderPinnedResource", at = @At("RETURN"), remap = false)
+    private void stepcrafter$endRenderingPinnedResource(final GuiGraphicsExtractor graphics,
+                                                        final int idx,
+                                                        final int slotX,
+                                                        final int slotY,
+                                                        final boolean hovering,
+                                                        final float partialTicks,
+                                                        final CallbackInfo ci) {
+        this.stepcrafter$renderingPinnedResource = false;
     }
 
     @Inject(method = "renderResourceWithAmount", at = @At("HEAD"), cancellable = true)
-    private void renderResourceWithAmount(final GuiGraphics graphics,
+    private void renderResourceWithAmount(final GuiGraphicsExtractor graphics,
                                           final int slotX,
                                           final int slotY,
                                           final GridResource resource,
                                           final CallbackInfo ci) {
-        if (!this.stepcrafter$getMaintainingResources(this.getMenu().getRepository(), resource).isEmpty()) {
+        //TODO: we should still render the background in the pin row when the maintaining resource is running
+        if (!this.stepcrafter$getMaintainingResources(this.getMenu().getRepository(), resource).isEmpty()
+            && !this.stepcrafter$renderingPinnedResource) {
             if (!resource.isAutocraftable(this.getMenu().getRepository())) {
                 AbstractGridScreen.renderSlotBackground(
                     graphics,
@@ -86,24 +110,26 @@ public abstract class MixinAbstractGridScreen<T extends AbstractGridContainerMen
         }
     }
 
-    @ModifyExpressionValue(method = "mouseClicked", at = @At(value = "INVOKE",
-        target = "Lcom/refinedmods/refinedstorage/common/api/grid/view/GridResource;"
+    @ModifyExpressionValue(method = "mouseReleased(Lnet/minecraft/client/input/MouseButtonEvent;"
+        + "Lcom/refinedmods/refinedstorage/common/api/grid/view/GridResource;Lnet/minecraft/world/item/ItemStack;)Z",
+        at = @At(value = "INVOKE", target = "Lcom/refinedmods/refinedstorage/common/api/grid/view/GridResource;"
             + "isAutocraftable(Lcom/refinedmods/refinedstorage/api/resource/repository/ResourceRepository;)Z"), remap = false)
-    public boolean mouseClicked(final boolean original) {
+    public boolean mouseReleased(final boolean original) {
+        final Minecraft mc = Minecraft.getInstance();
         final ItemStack carriedStack = this.getMenu().getCarried();
         final GridResource resource = this.getCurrentGridResource();
         if (resource != null
-            && ((resource.canExtract(carriedStack, this.getMenu().getRepository()) && !Screen.hasControlDown()) || Screen.hasAltDown())
+            && ((resource.canExtract(carriedStack, this.getMenu().getRepository()) && !mc.hasControlDown()) || mc.hasAltDown())
             && !this.stepcrafter$getMaintainingResources(this.getMenu().getRepository(), resource).isEmpty()
             && this.stepcrafter$tryStartRequesting(resource)) {
             return false;
         }
-        return original && !Screen.hasAltDown(); // This is to not accidentally add another way to open the autocrafting preview screen
+        return original && !mc.hasAltDown(); // This is to not accidentally add another way to open the autocrafting preview screen
     }
 
     @ModifyReturnValue(method = "canExtract", at = @At("RETURN"))
     private boolean canExtract(final boolean original) {
-        return original && !Screen.hasAltDown();
+        return original && !Minecraft.getInstance().hasAltDown();
     }
 
     @Inject(method = "getAmountText", at = @At("HEAD"), remap = false, cancellable = true)
@@ -121,31 +147,39 @@ public abstract class MixinAbstractGridScreen<T extends AbstractGridContainerMen
     }
 
     @Inject(
-        method = "renderHoveredResourceTooltip",
+        method = "renderGridResourceTooltip",
         at = @At(
             value = "INVOKE",
-            target = "Lcom/refinedmods/refinedstorage/common/Platform;renderTooltip(Lnet/minecraft/client/gui/GuiGraphics;Ljava/util/List;II)V"
+            target = "Lcom/refinedmods/refinedstorage/common/api/grid/view/GridResource;"
+                + "isAutocraftable(Lcom/refinedmods/refinedstorage/api/resource/repository/ResourceRepository;)Z"
+        ),
+        remap = false
+    )
+    private void renderGridResourceTooltip1(final GuiGraphicsExtractor graphics,
+                                            final int mouseX,
+                                            final int mouseY,
+                                            final GridResource resource,
+                                            final CallbackInfo ci,
+                                            @Local(name = "processedLines") final List<ClientTooltipComponent> processedLines) {
+        if (!this.stepcrafter$getMaintainingResources(this.getMenu().getRepository(), resource).isEmpty()) {
+            processedLines.add(MaintainableClientTooltipComponent.altClickToStepCraft());
+        }
+    }
+
+    @Inject(
+        method = "renderGridResourceTooltip",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;tooltip(Lnet/minecraft/client/gui/Font;Ljava/util/List;"
+                + "IILnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipPositioner;Lnet/minecraft/resources/Identifier;)V"
         )
     )
-    private void renderHoveredResourceTooltip(final GuiGraphics graphics,
-                                              final int mouseX,
-                                              final int mouseY,
-                                              final GridResource resource,
-                                              final CallbackInfo ci,
-                                              @Local(name = "processedLines") final List<ClientTooltipComponent> processedLines,
-                                              @Local(name = "amount") final long amount) {
-        int insertIndex = processedLines.size();
-        if (amount > 0) {
-            final List<ClientTooltipComponent> hints = resource.getExtractionHints(this.getMenu().getCarried(), this.getMenu().getRepository());
-            if (!hints.isEmpty() && processedLines.size() >= hints.size()) {
-                insertIndex = processedLines.size() - hints.size();
-            }
-        }
-
-        if (!this.stepcrafter$getMaintainingResources(this.getMenu().getRepository(), resource).isEmpty()) {
-            processedLines.add(insertIndex, MaintainableClientTooltipComponent.altClickToStepCraft());
-        }
-
+    private void renderGridResourceTooltip2(final GuiGraphicsExtractor graphics,
+                                            final int mouseX,
+                                            final int mouseY,
+                                            final GridResource resource,
+                                            final CallbackInfo ci,
+                                            @Local(name = "processedLines") final List<ClientTooltipComponent> processedLines) {
         for (final ResourceMinMaxAmount maintainingResource : this.stepcrafter$getMaintainingResources(this.getMenu().getRepository(), resource)) {
             processedLines.add(MaintainableClientTooltipComponent.maintaining(maintainingResource.minAmount(), maintainingResource.maxAmount()));
         }
@@ -160,7 +194,7 @@ public abstract class MixinAbstractGridScreen<T extends AbstractGridContainerMen
     }
 
     @Unique
-    private static void stepcrafter$renderHalfSlotBackground(final GuiGraphics graphics,
+    private static void stepcrafter$renderHalfSlotBackground(final GuiGraphicsExtractor graphics,
                                                              final int slotX,
                                                              final int slotY,
                                                              final boolean left,
@@ -176,7 +210,7 @@ public abstract class MixinAbstractGridScreen<T extends AbstractGridContainerMen
 
     @Unique
     private boolean stepcrafter$tryStartRequesting(final GridResource resource) {
-        final ResourceAmount request = resource.getAutocraftingRequest();
+        final ResourceAmount request = resource.createAutocraftingRequest();
         if (request == null) {
             return false;
         }
@@ -194,7 +228,7 @@ public abstract class MixinAbstractGridScreen<T extends AbstractGridContainerMen
     }
 
     @Shadow(remap = false)
-    protected abstract void renderAmount(GuiGraphics graphics, int slotX, int slotY, GridResource resource);
+    protected abstract void renderAmount(GuiGraphicsExtractor graphics, int slotX, int slotY, GridResource resource);
 
     @Shadow(remap = false)
     @Nullable

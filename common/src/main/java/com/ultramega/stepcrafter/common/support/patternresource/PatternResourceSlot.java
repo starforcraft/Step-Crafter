@@ -15,13 +15,13 @@ import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
 
 public class PatternResourceSlot extends ValidatedSlot {
     private final PatternResourceContainerImpl container;

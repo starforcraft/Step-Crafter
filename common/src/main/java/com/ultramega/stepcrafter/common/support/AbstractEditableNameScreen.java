@@ -8,26 +8,29 @@ import com.refinedmods.refinedstorage.common.support.widget.TextMarquee;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 import static java.util.Objects.requireNonNull;
+import static net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED;
 
 public abstract class AbstractEditableNameScreen<T extends AbstractEditableNameContainerMenu> extends AbstractAdvancedBaseScreen<T>
     implements StepCrafterContainerMenu.Listener {
     private static final Component EDIT = createTranslation("gui", "autocrafter.edit_name");
 
-    private static final ResourceLocation NAME_BACKGROUND = createIdentifier("widget/autocrafter_name");
+    private static final Identifier NAME_BACKGROUND = createIdentifier("widget/autocrafter_name");
     private static final List<String> CRAFTER_NAME_HISTORY = new ArrayList<>();
 
     @Nullable
@@ -37,7 +40,7 @@ public abstract class AbstractEditableNameScreen<T extends AbstractEditableNameC
     private boolean editName;
 
     protected AbstractEditableNameScreen(final T menu, final Inventory playerInventory, final TextMarquee title) {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, title, 228, 166);
     }
 
     @Override
@@ -65,28 +68,28 @@ public abstract class AbstractEditableNameScreen<T extends AbstractEditableNameC
     }
 
     @Override
-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(graphics, mouseX, mouseY, partialTicks);
+    public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         if (this.nameField != null && this.editName) {
-            this.nameField.render(graphics, mouseX, mouseY, partialTicks);
+            this.nameField.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         }
     }
 
     @Override
-    protected void renderBg(final GuiGraphics graphics, final float delta, final int mouseX, final int mouseY) {
-        super.renderBg(graphics, delta, mouseX, mouseY);
+    public void extractBackground(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTicks);
         if (this.editName) {
-            graphics.blitSprite(NAME_BACKGROUND, this.leftPos + 7, this.topPos + 5, 162, 12);
+            graphics.blitSprite(GUI_TEXTURED, NAME_BACKGROUND, this.leftPos + 7, this.topPos + 5, 162, 12);
         }
     }
 
     @Override
-    protected void renderLabels(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+    protected void extractLabels(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
         if (this.editName) {
             this.renderPlayerInventoryTitle(graphics);
             return;
         }
-        super.renderLabels(graphics, mouseX, mouseY);
+        super.extractLabels(graphics, mouseX, mouseY);
     }
 
     private void setEditName(final boolean editName) {
@@ -107,19 +110,19 @@ public abstract class AbstractEditableNameScreen<T extends AbstractEditableNameC
     }
 
     @Override
-    public boolean charTyped(final char unknown1, final int unknown2) {
-        return (this.nameField != null && this.editName && this.nameField.charTyped(unknown1, unknown2))
-            || super.charTyped(unknown1, unknown2);
+    public boolean charTyped(final CharacterEvent event) {
+        return (this.nameField != null && this.editName && this.nameField.charTyped(event))
+            || super.charTyped(event);
     }
 
     @Override
-    public boolean keyPressed(final int key, final int scanCode, final int modifiers) {
+    public boolean keyPressed(final KeyEvent event) {
         if (this.nameField != null && this.editName) {
-            if (this.nameField.keyPressed(key, scanCode, modifiers) | (this.nameField.isFocused() && this.saveOrCancel(key))) {
+            if (this.nameField.keyPressed(event) | (this.nameField.isFocused() && this.saveOrCancel(event.key()))) {
                 return true;
             }
         }
-        return super.keyPressed(key, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     private boolean saveOrCancel(final int key) {

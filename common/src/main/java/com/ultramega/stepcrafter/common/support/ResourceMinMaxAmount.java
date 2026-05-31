@@ -46,6 +46,8 @@ public record ResourceMinMaxAmount(ResourceKey resource, long minAmount, long ma
         ResourceStatus.CODEC.fieldOf("status").forGetter(ResourceMinMaxAmount::status)
     ).apply(instance, ResourceMinMaxAmount::new));
 
+    public static final Codec<Optional<ResourceMinMaxAmount>> OPTIONAL_CODEC = CODEC.optionalFieldOf("resource").codec();
+
     /**
      * @param resource the resource, must be non-null
      * @param minAmount the minAmount, must be non-negative

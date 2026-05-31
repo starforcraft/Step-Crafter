@@ -2,7 +2,7 @@ package com.ultramega.stepcrafter.common.support;
 
 import com.refinedmods.refinedstorage.api.network.Network;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface NetworkGetter {
     @Nullable

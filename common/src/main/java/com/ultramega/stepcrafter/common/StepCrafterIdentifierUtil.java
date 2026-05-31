@@ -3,7 +3,7 @@ package com.ultramega.stepcrafter.common;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class StepCrafterIdentifierUtil {
     public static final String MOD_ID = "stepcrafter";
@@ -11,8 +11,8 @@ public final class StepCrafterIdentifierUtil {
     private StepCrafterIdentifierUtil() {
     }
 
-    public static ResourceLocation createStepCrafterIdentifier(final String value) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, value);
+    public static Identifier createStepCrafterIdentifier(final String value) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, value);
     }
 
     public static MutableComponent createStepCrafterTranslation(final String category, final String value) {

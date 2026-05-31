@@ -11,9 +11,11 @@ import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes
 import com.refinedmods.refinedstorage.common.support.widget.RedstoneModeSideButtonWidget;
 import com.refinedmods.refinedstorage.common.support.widget.TextMarquee;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class StepCrafterScreen extends AbstractEditableNameScreen<StepCrafterContainerMenu> implements PatternOutputRenderingScreen {
@@ -44,19 +46,19 @@ public class StepCrafterScreen extends AbstractEditableNameScreen<StepCrafterCon
     }
 
     @Override
-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(graphics, mouseX, mouseY, partialTicks);
+    protected void extractSlot(final GuiGraphicsExtractor graphics, final Slot slot, final int mouseX, final int mouseY) {
+        super.extractSlot(graphics, slot, mouseX, mouseY);
         this.renderSlotMinMax(graphics, false);
     }
 
     @Override
-    public boolean mouseClicked(final double mouseX, final double mouseY, final int clickedButton) {
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
         if (this.hoveredSlot instanceof PatternResourceSlot resourceSlot && resourceSlot.isActive()) {
             if (this.tryOpenResourceAmountScreen(resourceSlot, false, true)) {
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, clickedButton);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override

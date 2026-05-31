@@ -5,7 +5,7 @@ import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import static com.refinedmods.refinedstorage.common.support.Sprites.AUTOCRAFTING_INDICATOR;
 import static com.refinedmods.refinedstorage.common.support.Sprites.WARNING;
@@ -20,7 +20,7 @@ public final class ResourceStatusClientHelper {
     private ResourceStatusClientHelper() {
     }
 
-    public static ResourceLocation getIcon(final ResourceStatus status) {
+    public static Identifier getIcon(final ResourceStatus status) {
         return switch (status) {
             case FINISHED -> FINISHED_INDICATOR;
             case CRAFTING -> AUTOCRAFTING_INDICATOR;

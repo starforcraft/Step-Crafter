@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRender
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -29,29 +29,29 @@ public class StepCraftingMonitorItemTooltip implements ClientTooltipComponent {
     }
 
     @Override
-    public void renderImage(final Font font, final int x, final int y, final GuiGraphics graphics) {
+    public void extractImage(final Font font, final int x, final int y, final int width, final int height, final GuiGraphicsExtractor graphics) {
         int yy = y;
-        graphics.drawString(
+        graphics.text(
             font,
             this.rendering.getDisplayName(this.item.resource()),
             x,
             yy,
-            0xFFFFFF
+            0xFFFFFFFF
         );
         yy += 9 + SPACING;
         if (this.item.type() != StepTaskStatus.ItemType.NORMAL) {
-            graphics.drawString(
+            graphics.text(
                 font,
                 this.getErrorTooltip(this.item.type()),
                 x,
                 yy,
-                0xAAAAAA
+                0xFFAAAAAA
             );
         }
     }
 
     @Override
-    public int getHeight() {
+    public int getHeight(final Font font) {
         return 9 + SPACING
             + (this.item.type() != StepTaskStatus.ItemType.NORMAL ? 9 + SPACING : 0);
     }

@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,7 @@ public class StepTaskContainer {
         this.parents.add(parent);
     }
 
-    public void add(final StepTask task, @Nullable final Network network) {
+    public void add(final StepTask task) {
         this.tasks.add(task);
     }
 

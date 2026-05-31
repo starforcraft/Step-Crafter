@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "stepcrafter:block/step_requester_manager/yellow"
+  }
+}

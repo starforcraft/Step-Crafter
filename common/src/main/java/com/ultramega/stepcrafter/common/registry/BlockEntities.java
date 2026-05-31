@@ -7,9 +7,9 @@ import com.ultramega.stepcrafter.common.steprequester.StepRequesterBlockEntity;
 import com.ultramega.stepcrafter.common.steprequester.manager.StepRequesterManagerBlockEntity;
 
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import org.jspecify.annotations.Nullable;
 
 import static java.util.Objects.requireNonNull;
 

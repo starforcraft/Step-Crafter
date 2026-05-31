@@ -30,13 +30,13 @@ refinedarchitect {
     neoForge()
     dataGeneration(project(":common"))
 
-    project.afterEvaluate {
-        project.extensions.getByType<NeoForge>().runs.named("data") {
-            programArguments.addAll(
-                "--existing-mod", "refinedstorage"
-            )
-        }
-    }
+//    project.afterEvaluate {
+//        project.extensions.getByType<NeoForge>().runs.named("data") {
+//            programArguments.addAll(
+//                "--existing-mod", "refinedstorage"
+//            )
+//        }
+//    }
 
     publishing {
         maven = true
@@ -67,5 +67,5 @@ dependencies {
     compileOnlyApi("mezz.jei:jei-${minecraftVersion}-common-api:${jeiVersion}")
     compileOnlyApi("mezz.jei:jei-${minecraftVersion}-neoforge-api:${jeiVersion}")
 //    runtimeOnly("dev.emi:emi-neoforge:${emiVersion}")
-    compileOnlyApi("dev.emi:emi-neoforge:${emiVersion}")
+//    compileOnlyApi("dev.emi:emi-neoforge:${emiVersion}")
 }

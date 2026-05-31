@@ -15,16 +15,13 @@ import com.refinedmods.refinedstorage.common.support.containermenu.ResourceSlotT
 import com.refinedmods.refinedstorage.common.support.packet.c2s.C2SPackets;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerImpl;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
+import org.jspecify.annotations.Nullable;
 
 public class StepCraftingPreviewContainerMenu extends AbstractResourceContainerMenu {
     private final AutocraftingRequest request;
-    @Nullable
-    private StepCraftingPreviewListener listener;
 
     StepCraftingPreviewContainerMenu(final AutocraftingRequest request) {
         this(null, 0, request);
@@ -49,10 +46,6 @@ public class StepCraftingPreviewContainerMenu extends AbstractResourceContainerM
             48,
             ResourceSlotType.FILTER
         ));
-    }
-
-    void setListener(final StepCraftingPreviewListener listener) {
-        this.listener = listener;
     }
 
     public AutocraftingRequest getRequest() {

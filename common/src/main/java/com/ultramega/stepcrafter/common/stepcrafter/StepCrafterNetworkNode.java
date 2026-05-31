@@ -22,7 +22,10 @@ import com.refinedmods.refinedstorage.api.storage.Actor;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nullable;
+
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.ultramega.stepcrafter.common.stepcrafter.StepCraftingAlgorithm.canInsertIntoNetwork;
 import static com.ultramega.stepcrafter.common.stepcrafter.StepCraftingAlgorithm.extractResolvedInputs;
@@ -30,10 +33,13 @@ import static com.ultramega.stepcrafter.common.stepcrafter.StepCraftingAlgorithm
 import static com.ultramega.stepcrafter.common.stepcrafter.StepCraftingAlgorithm.prepareCraft;
 
 public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCrafterProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(StepCrafterNetworkNode.class);
+
     private final Actor actor = new NetworkNodeActor(this);
     private final Set<StepCraftingParentContainer> parents = new HashSet<>();
     private final StepTaskContainer tasks = new StepTaskContainer(this);
     private int priority;
+    @Nullable
     private final PatternMinMax[] patterns;
 
     private StepCrafterBlockEntity blockEntity;
@@ -95,7 +101,7 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
             return ResourceStatus.NOT_ENOUGH_INGREDIENTS;
         }
 
-        final Result result = this.blockEntity.accept(preparation.totalResources(), Action.SIMULATE);
+        final Result result = this.blockEntity.insertAll(preparation.totalResources(), Action.SIMULATE);
         if (result == Result.SKIPPED) {
             // No Sink (connected machine) so try to import into network
             if (!canInsertIntoNetwork(storageComponent, preparation.totalResources(), this.actor)) {
@@ -108,7 +114,7 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
         } else if (result == Result.ACCEPTED) {
             // Has Sink (connected machine) and was accepted
             extractResolvedInputs(storageComponent, preparation.resolvedInputs(), null, this.actor);
-            this.blockEntity.accept(preparation.totalResources(), Action.EXECUTE);
+            this.blockEntity.insertAll(preparation.totalResources(), Action.EXECUTE);
             return ResourceStatus.FINISHED;
         }
 
@@ -119,8 +125,15 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
         this.blockEntity = blockEntity;
     }
 
-    public void setPattern(final int index, @Nullable final PatternMinMax pattern) {
+    public void tryUpdatePattern(final int index, @Nullable final PatternMinMax pattern) {
         final PatternMinMax oldPattern = this.patterns[index];
+        if (oldPattern != null && oldPattern.equals(pattern)) {
+            return;
+        }
+        if (oldPattern == null && pattern == null) {
+            return;
+        }
+        LOGGER.debug("Detected pattern change at index {}: {} -> {}", index, oldPattern, pattern);
         if (oldPattern != null) {
             this.parents.forEach(parent -> parent.remove(this, oldPattern));
         }
@@ -172,7 +185,7 @@ public class StepCrafterNetworkNode extends SimpleNetworkNode implements StepCra
 
     @Override
     public void addTask(final StepTask task) {
-        this.tasks.add(task, this.network);
+        this.tasks.add(task);
         this.parents.forEach(parent -> parent.taskAdded(this, task));
     }
 

@@ -5,13 +5,12 @@ import com.ultramega.stepcrafter.common.packet.s2c.StepNameUpdatePacket;
 
 import com.refinedmods.refinedstorage.common.Platform;
 
-import javax.annotation.Nullable;
-
 import com.google.common.util.concurrent.RateLimiter;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractEditableNameContainerMenu extends AbstractPatternResourceContainerMenu {
     protected Component name;

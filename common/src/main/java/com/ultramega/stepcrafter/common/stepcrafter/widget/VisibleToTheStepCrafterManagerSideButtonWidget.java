@@ -5,7 +5,7 @@ import com.refinedmods.refinedstorage.common.support.widget.AbstractYesNoSideBut
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
@@ -15,9 +15,9 @@ public class VisibleToTheStepCrafterManagerSideButtonWidget extends AbstractYesN
         createStepCrafterTranslation("gui", "step_crafter.visible_to_the_step_crafter_manager");
     private static final MutableComponent HELP =
         createStepCrafterTranslation("gui", "step_crafter.visible_to_the_step_crafter_manager.help");
-    private static final ResourceLocation YES =
+    private static final Identifier YES =
         createIdentifier("widget/side_button/autocrafter/visible_to_the_autocrafter_manager/yes");
-    private static final ResourceLocation NO =
+    private static final Identifier NO =
         createIdentifier("widget/side_button/autocrafter/visible_to_the_autocrafter_manager/no");
 
     public VisibleToTheStepCrafterManagerSideButtonWidget(final ClientProperty<Boolean> property) {

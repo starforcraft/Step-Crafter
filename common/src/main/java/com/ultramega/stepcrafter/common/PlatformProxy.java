@@ -1,8 +1,8 @@
 package com.ultramega.stepcrafter.common;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import org.jspecify.annotations.Nullable;
 
 public class PlatformProxy implements Platform {
     @Nullable
@@ -22,8 +22,9 @@ public class PlatformProxy implements Platform {
     }
 
     @Override
-    public ItemStack getCraftingRemainingItem(final ItemStack itemStack) {
-        return this.ensureLoaded().getCraftingRemainingItem(itemStack);
+    @Nullable
+    public ItemStackTemplate getCraftingRemainder(final ItemStack itemStack) {
+        return this.ensureLoaded().getCraftingRemainder(itemStack);
     }
 
     private Platform ensureLoaded() {

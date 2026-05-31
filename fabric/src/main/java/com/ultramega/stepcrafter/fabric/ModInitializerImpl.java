@@ -31,16 +31,14 @@ import com.refinedmods.refinedstorage.common.support.packet.PacketHandler;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStorageFabricApi;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStoragePlugin;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -90,11 +88,10 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
         super.registerBlockEntities(
             new DirectRegistryCallback<>(BuiltInRegistries.BLOCK_ENTITY_TYPE),
             new BlockEntityTypeFactory() {
-                @SuppressWarnings("DataFlowIssue") // data type can be null
                 @Override
                 public <T extends BlockEntity> BlockEntityType<T> create(final BlockEntityProvider<T> factory,
                                                                          final Block... allowedBlocks) {
-                    return new BlockEntityType<>(factory::create, new HashSet<>(Arrays.asList(allowedBlocks)), null);
+                    return FabricBlockEntityTypeBuilder.create(factory::create, allowedBlocks).build();
                 }
             }
         );
@@ -102,7 +99,7 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
             @Override
             public <T extends AbstractContainerMenu, D> MenuType<T> create(final MenuSupplier<T, D> supplier,
                                                                            final StreamCodec<RegistryFriendlyByteBuf, D> streamCodec) {
-                return new ExtendedScreenHandlerType<>(supplier::create, streamCodec);
+                return new ExtendedMenuType<>(supplier::create, streamCodec);
             }
         });
     }
@@ -111,6 +108,8 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
         this.registerNetworkNodeContainerProvider(BlockEntities.INSTANCE.getStepCrafter());
         this.registerNetworkNodeContainerProvider(BlockEntities.INSTANCE.getStepRequester());
         this.registerNetworkNodeContainerProvider(BlockEntities.INSTANCE.getStepCrafterManager());
+        this.registerNetworkNodeContainerProvider(BlockEntities.INSTANCE.getStepCraftingMonitor());
+        this.registerNetworkNodeContainerProvider(BlockEntities.INSTANCE.getStepRequesterManager());
     }
 
     private void registerNetworkNodeContainerProvider(final BlockEntityType<? extends AbstractNetworkNodeContainerBlockEntity<?>> type) {
@@ -121,23 +120,23 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
     }
 
     private void registerPackets() {
-        PayloadTypeRegistry.playC2S().register(PatternResourceSlotChangePacket.PACKET_TYPE, PatternResourceSlotChangePacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(PatternResourceSlotAmountChangePacket.PACKET_TYPE, PatternResourceSlotAmountChangePacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(PatternResourceFilterSlotChangePacket.PACKET_TYPE, PatternResourceFilterSlotChangePacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(RequestMaintainableResourcesPacket.PACKET_TYPE, RequestMaintainableResourcesPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(StepNameChangePacket.PACKET_TYPE, StepNameChangePacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(StepCraftingRequestPacket.PACKET_TYPE, StepCraftingRequestPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(StepCraftingMonitorCancelPacket.PACKET_TYPE, StepCraftingMonitorCancelPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(StepCraftingMonitorCancelAllPacket.PACKET_TYPE, StepCraftingMonitorCancelAllPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(PatternResourceSlotChangePacket.PACKET_TYPE, PatternResourceSlotChangePacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(PatternResourceSlotAmountChangePacket.PACKET_TYPE, PatternResourceSlotAmountChangePacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(PatternResourceFilterSlotChangePacket.PACKET_TYPE, PatternResourceFilterSlotChangePacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(RequestMaintainableResourcesPacket.PACKET_TYPE, RequestMaintainableResourcesPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(StepNameChangePacket.PACKET_TYPE, StepNameChangePacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(StepCraftingRequestPacket.PACKET_TYPE, StepCraftingRequestPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(StepCraftingMonitorCancelPacket.PACKET_TYPE, StepCraftingMonitorCancelPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(StepCraftingMonitorCancelAllPacket.PACKET_TYPE, StepCraftingMonitorCancelAllPacket.STREAM_CODEC);
 
-        PayloadTypeRegistry.playS2C().register(PatternResourceSlotUpdatePacket.PACKET_TYPE, PatternResourceSlotUpdatePacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(SetMaintainableResourcesPacket.PACKET_TYPE, SetMaintainableResourcesPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(StepNameUpdatePacket.PACKET_TYPE, StepNameUpdatePacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(StepManagerActivePacket.PACKET_TYPE, StepManagerActivePacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(StepCraftingMonitorTaskStatusChangedPacket.PACKET_TYPE, StepCraftingMonitorTaskStatusChangedPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(StepCraftingMonitorTaskRemovedPacket.PACKET_TYPE, StepCraftingMonitorTaskRemovedPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(StepCraftingMonitorTaskAddedPacket.PACKET_TYPE, StepCraftingMonitorTaskAddedPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(StepCraftingMonitorActivePacket.PACKET_TYPE, StepCraftingMonitorActivePacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(PatternResourceSlotUpdatePacket.PACKET_TYPE, PatternResourceSlotUpdatePacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(SetMaintainableResourcesPacket.PACKET_TYPE, SetMaintainableResourcesPacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(StepNameUpdatePacket.PACKET_TYPE, StepNameUpdatePacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(StepManagerActivePacket.PACKET_TYPE, StepManagerActivePacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(StepCraftingMonitorTaskStatusChangedPacket.PACKET_TYPE, StepCraftingMonitorTaskStatusChangedPacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(StepCraftingMonitorTaskRemovedPacket.PACKET_TYPE, StepCraftingMonitorTaskRemovedPacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(StepCraftingMonitorTaskAddedPacket.PACKET_TYPE, StepCraftingMonitorTaskAddedPacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(StepCraftingMonitorActivePacket.PACKET_TYPE, StepCraftingMonitorActivePacket.STREAM_CODEC);
     }
 
     private void registerPacketHandlers() {
@@ -186,14 +185,14 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
             Registries.CREATIVE_MODE_TAB,
             refinedStorageApi.getCreativeModeTabId()
         );
-        ItemGroupEvents.modifyEntriesEvent(creativeModeTab).register(
+        CreativeModeTabEvents.modifyOutputEvent(creativeModeTab).register(
             entries -> CreativeModeTabItems.appendBlocks(entries::accept)
         );
         final ResourceKey<CreativeModeTab> coloredCreativeModeTab = ResourceKey.create(
             Registries.CREATIVE_MODE_TAB,
             refinedStorageApi.getColoredCreativeModeTabId()
         );
-        ItemGroupEvents.modifyEntriesEvent(coloredCreativeModeTab).register(
+        CreativeModeTabEvents.modifyOutputEvent(coloredCreativeModeTab).register(
             entries -> CreativeModeTabItems.appendColoredVariants(entries::accept)
         );
     }

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import net.minecraft.network.chat.Component;
@@ -34,6 +33,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractStepManagerContainerMenu extends AbstractPatternResourceContainerMenu implements ScreenSizeListener, StepManagerWatcher {
     private final Inventory playerInventory;

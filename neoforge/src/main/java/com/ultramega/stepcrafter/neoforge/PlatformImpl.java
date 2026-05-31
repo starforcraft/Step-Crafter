@@ -3,8 +3,10 @@ package com.ultramega.stepcrafter.neoforge;
 import com.ultramega.stepcrafter.common.Platform;
 
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
+import org.jspecify.annotations.Nullable;
 
 public final class PlatformImpl implements Platform {
     private final ConfigImpl config = new ConfigImpl();
@@ -19,7 +21,8 @@ public final class PlatformImpl implements Platform {
     }
 
     @Override
-    public ItemStack getCraftingRemainingItem(final ItemStack itemStack) {
-        return itemStack.getItem().getCraftingRemainingItem(itemStack);
+    @Nullable
+    public ItemStackTemplate getCraftingRemainder(final ItemStack itemStack) {
+        return itemStack.getCraftingRemainder();
     }
 }

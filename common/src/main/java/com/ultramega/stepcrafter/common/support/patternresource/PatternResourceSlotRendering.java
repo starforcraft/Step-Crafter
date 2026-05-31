@@ -4,29 +4,22 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class PatternResourceSlotRendering {
     private PatternResourceSlotRendering() {
     }
 
-    public static void render(final GuiGraphics graphics,
-                              final PatternResourceSlot slot,
-                              final int leftPos,
-                              final int topPos) {
+    public static void render(final GuiGraphicsExtractor graphics,
+                              final PatternResourceSlot slot) {
         final ResourceKey resource = slot.getResource();
         if (resource == null) {
             return;
         }
-        render(
-            graphics,
-            leftPos + slot.x,
-            topPos + slot.y,
-            resource
-        );
+        render(graphics, slot.x, slot.y, resource);
     }
 
-    private static void render(final GuiGraphics graphics,
+    private static void render(final GuiGraphicsExtractor graphics,
                                final int x,
                                final int y,
                                final ResourceKey resource) {

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "refinedstorage:pattern",
+    "C": "stepcrafter:step_crafter",
+    "E": "refinedstorage:quartz_enriched_iron",
+    "G": "#c:glass_blocks",
+    "M": "refinedstorage:machine_casing",
+    "P": "refinedstorage:advanced_processor"
+  },
+  "pattern": [
+    "PCG",
+    "EMG",
+    "PAG"
+  ],
+  "result": {
+    "id": "stepcrafter:step_crafting_monitor"
+  }
+}

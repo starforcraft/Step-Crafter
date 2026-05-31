@@ -2,9 +2,8 @@ package com.ultramega.stepcrafter.common.support;
 
 import com.refinedmods.refinedstorage.common.support.containermenu.TransferDestination;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 public record ResourceInventoryDestination(AbstractPatternResourceContainerMenu destination) implements TransferDestination {
     @Nullable

@@ -14,13 +14,12 @@ import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes
 import com.refinedmods.refinedstorage.common.support.containermenu.ServerProperty;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
 
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
 import static com.ultramega.stepcrafter.common.steprequester.StepRequesterBlockEntity.UPGRADES;
@@ -43,7 +42,7 @@ public class StepRequesterContainerMenu extends AbstractEditableNameContainerMen
             new UpgradeContainer(UPGRADES, UpgradeDestinations.STEP_REQUESTER, (c, upgradeEnergyUsage) -> {
                 this.amountSlotUpgrades = c.getAmount(Items.INSTANCE.getSlotUpgrade());
                 this.amountSlotUpgradesChanged(this.amountSlotUpgrades);
-            }, 9)
+            }, null)
         );
     }
 

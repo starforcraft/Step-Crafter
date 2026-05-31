@@ -5,7 +5,6 @@ import com.ultramega.stepcrafter.common.support.AbstractAdvancedBaseScreen;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlotRendering;
 
-import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.autocrafting.PatternOutputRenderingScreen;
 import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
 import com.refinedmods.refinedstorage.common.support.amount.ActionButton;
@@ -15,28 +14,29 @@ import com.refinedmods.refinedstorage.common.support.amount.DoubleAmountOperatio
 
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.Triple;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterIdentifier;
 
 public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<ResourceConfigurationContainerMenu> implements PatternOutputRenderingScreen {
-    private static final ResourceLocation TEXTURE_1 = createStepCrafterIdentifier("textures/gui/resource_configuration_1.png");
-    private static final ResourceLocation TEXTURE_2 = createStepCrafterIdentifier("textures/gui/resource_configuration_2.png");
+    private static final Identifier TEXTURE_1 = createStepCrafterIdentifier("textures/gui/resource_configuration_1.png");
+    private static final Identifier TEXTURE_2 = createStepCrafterIdentifier("textures/gui/resource_configuration_2.png");
     private static final MutableComponent TITLE = createTranslation("gui", "configure_amount");
     private static final MutableComponent SET_TEXT = createTranslation("gui", "configure_amount.set");
 
@@ -64,7 +64,7 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
     private final double maxAmount;
 
     public ResourceConfigurationScreen(final Screen parent, final Inventory playerInventory, final PatternResourceSlot resourceSlot, final boolean showBatchSize) {
-        super(new ResourceConfigurationContainerMenu(resourceSlot, 120 + (showBatchSize ? 25 : 0), 42), playerInventory, TITLE);
+        super(new ResourceConfigurationContainerMenu(resourceSlot, 120 + (showBatchSize ? 25 : 0), 42), playerInventory, TITLE, 179, 99);
         this.parent = parent;
         this.resourceSlot = resourceSlot;
         this.amountOperations = DoubleAmountOperations.INSTANCE;
@@ -79,9 +79,6 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
         this.showBatchSize = showBatchSize;
         this.minAmount = resource != null ? resource.getResourceType().getDisplayAmount(0) : 0;
         this.maxAmount = Double.MAX_VALUE;
-
-        this.imageWidth = 179;
-        this.imageHeight = 99;
     }
 
     @Override
@@ -93,17 +90,13 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
     }
 
     @Override
-    protected void renderSlot(final GuiGraphics graphics, final Slot slot) {
+    protected void renderResourceSlots(final GuiGraphicsExtractor graphics) {
+        PatternResourceSlotRendering.render(graphics, this.getMenu().getResourceSlot());
     }
 
     @Override
-    protected void renderResourceSlots(final GuiGraphics graphics) {
-        PatternResourceSlotRendering.render(graphics, this.getMenu().getResourceSlot(), this.leftPos, this.topPos);
-    }
-
-    @Override
-    protected void renderLabels(final GuiGraphics graphics, final int mouseX, final int mouseY) {
-        graphics.pose().popPose();
+    protected void extractLabels(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
+        graphics.pose().popMatrix();
         final boolean hoveringOverTitle = this.isHovering(
             this.titleLabelX,
             this.titleLabelY,
@@ -113,9 +106,9 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
             mouseY
         );
         this.titleMarquee.render(graphics, this.leftPos + this.titleLabelX, this.topPos + this.titleLabelY, this.font, hoveringOverTitle,
-            Minecraft.getInstance().getTimer().getGameTimeDeltaTicks());
-        graphics.pose().pushPose();
-        graphics.pose().translate(this.leftPos, this.topPos, 0.0F);
+            this.minecraft.getDeltaTracker().getGameTimeDeltaTicks());
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(this.leftPos, this.topPos);
 
         final Component minText = Component.translatable("gui.stepcrafter.resource_configuration.minimum");
         final Component maxText = Component.translatable("gui.stepcrafter.resource_configuration.maximum");
@@ -129,23 +122,23 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
             y -= 6;
         }
         final int x = (width - biggestTextWidth) / 2;
-        graphics.drawString(this.font, minText, x, y, 4210752, false);
-        graphics.drawString(this.font, maxText, x, y + 14, 4210752, false);
+        graphics.text(this.font, minText, x, y, -12566464, false);
+        graphics.text(this.font, maxText, x, y + 14, -12566464, false);
         if (this.showBatchSize) {
-            graphics.drawString(this.font, batchSizeText, x, y + 14 * 2, 4210752, false);
+            graphics.text(this.font, batchSizeText, x, y + 14 * 2, -12566464, false);
         }
     }
 
     @Override
-    protected void renderTooltip(final GuiGraphics graphics, final int x, final int y) {
+    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int x, final int y) {
         if (this.hoveredSlot instanceof PatternResourceSlot patternSlot && patternSlot.getResource() != null) {
             final List<ClientTooltipComponent> tooltip = this.getPatternResourceSlotTooltip(patternSlot.getResource(), patternSlot);
             if (!tooltip.isEmpty()) {
-                Platform.INSTANCE.renderTooltip(graphics, tooltip, x, y);
+                graphics.tooltip(this.font, tooltip, x, y, DefaultTooltipPositioner.INSTANCE, null);
                 return;
             }
         }
-        super.renderTooltip(graphics, x, y);
+        super.extractTooltip(graphics, x, y);
     }
 
     @Override
@@ -160,7 +153,7 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
         final String minOriginalValue = this.minAmountField != null ? this.minAmountField.getValue() : null;
         this.minAmountField = new EditBox(this.font, x, y, width, this.font.lineHeight, Component.empty());
         this.minAmountField.setBordered(false);
-        this.minAmountField.setTextColor(0xFFFFFF);
+        this.minAmountField.setTextColor(0xFFFFFFFF);
         if (minOriginalValue != null) {
             this.minAmountField.setValue(minOriginalValue);
             this.onAmountFieldChanged(this.minAmountField, 0);
@@ -186,7 +179,7 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
         final String maxOriginalValue = this.maxAmountField != null ? this.maxAmountField.getValue() : null;
         this.maxAmountField = new EditBox(this.font, x, y + 14, width, this.font.lineHeight, Component.empty());
         this.maxAmountField.setBordered(false);
-        this.maxAmountField.setTextColor(0xFFFFFF);
+        this.maxAmountField.setTextColor(0xFFFFFFFF);
         if (maxOriginalValue != null) {
             this.maxAmountField.setValue(maxOriginalValue);
             this.onAmountFieldChanged(this.maxAmountField, 1);
@@ -203,7 +196,7 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
         final String batchOriginalValue = this.batchSizeField != null ? this.batchSizeField.getValue() : null;
         this.batchSizeField = new EditBox(this.font, x, y + 14 * 2, width, this.font.lineHeight, Component.empty());
         this.batchSizeField.setBordered(false);
-        this.batchSizeField.setTextColor(0xFFFFFF);
+        this.batchSizeField.setTextColor(0xFFFFFFFF);
         if (batchOriginalValue != null) {
             this.batchSizeField.setValue(batchOriginalValue);
             this.onAmountFieldChanged(this.batchSizeField, 2);
@@ -259,7 +252,7 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
         } else {
             this.tryConfirm(false);
         }
-        amountField.setTextColor(thisValid ? 0xFFFFFF : 0xFF5555);
+        amountField.setTextColor(thisValid ? 0xFFFFFFFF : 0xFFFF5555);
     }
 
     protected final Triple<Optional<Double>, Optional<Double>, Optional<Double>> getAndValidateAmount() {
@@ -290,11 +283,11 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
     }
 
     @Override
-    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_ENTER && this.tryConfirm(true)) {
+    public boolean keyPressed(final KeyEvent event) {
+        if (event.key() == GLFW.GLFW_KEY_ENTER && this.tryConfirm(true)) {
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     private boolean tryConfirm(final boolean closeToParent) {
@@ -325,7 +318,7 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
     }
 
     @Override
-    protected ResourceLocation getTexture() {
+    protected Identifier getTexture() {
         return !this.showBatchSize ? TEXTURE_1 : TEXTURE_2;
     }
 }

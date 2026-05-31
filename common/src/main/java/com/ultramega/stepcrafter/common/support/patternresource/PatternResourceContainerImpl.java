@@ -3,7 +3,6 @@ package com.ultramega.stepcrafter.common.support.patternresource;
 import com.ultramega.stepcrafter.common.support.ResourceMinMaxAmount;
 import com.ultramega.stepcrafter.common.support.ResourceStatus;
 
-import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
@@ -13,28 +12,19 @@ import com.refinedmods.refinedstorage.common.autocrafting.PatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternType;
 import com.refinedmods.refinedstorage.common.content.DataComponents;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
-import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.HolderLookup.Provider;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jspecify.annotations.Nullable;
 
 public class PatternResourceContainerImpl extends PatternInventory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PatternResourceContainerImpl.class);
-
+    @Nullable
     private final ResourceMinMaxAmount[] slots;
     @Nullable
     private final ResourceFactory primaryResourceFactory;
@@ -47,7 +37,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
     private Consumer<Integer> changedListener;
 
     public PatternResourceContainerImpl(final int size,
-                                        final Supplier<@NullableType Level> levelSupplier,
+                                        final Supplier<@Nullable Level> levelSupplier,
                                         @Nullable final ResourceFactory primaryResourceFactory,
                                         @Nullable final Set<ResourceFactory> alternativeResourceFactories,
                                         final boolean isFilter,
@@ -122,7 +112,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
         if (slot == null) {
             return 0L;
         }
-        return this.slots[index].minAmount();
+        return slot.minAmount();
     }
 
     public void setMaxAmount(final int index, final long amount) {
@@ -139,7 +129,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
         if (slot == null) {
             return 0L;
         }
-        return this.slots[index].maxAmount();
+        return slot.maxAmount();
     }
 
     public void setBatchSize(final int index, final long amount) {
@@ -156,7 +146,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
         if (slot == null) {
             return 0L;
         }
-        return this.slots[index].batchSize();
+        return slot.batchSize();
     }
 
     public ResourceStatus getStatus(final int index) {
@@ -164,7 +154,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
         if (slot == null) {
             return ResourceStatus.FINISHED;
         }
-        return this.slots[index].status();
+        return slot.status();
     }
 
     @Nullable
@@ -186,6 +176,7 @@ public class PatternResourceContainerImpl extends PatternInventory {
             return true;
         }
 
+        // TODO: allow processing patterns again?
         // Disallow inputting processing patterns
         final PatternState state = stack.get(DataComponents.INSTANCE.getPatternState());
         return super.canPlaceItem(slot, stack) && state != null && state.type() != PatternType.PROCESSING;
@@ -209,58 +200,12 @@ public class PatternResourceContainerImpl extends PatternInventory {
         }
     }
 
-    @Override
-    public ListTag createTag(final Provider provider) {
-        final CompoundTag tag1 = ContainerUtil.write(this, provider);
-
-        final CompoundTag tag2 = new CompoundTag();
-        for (int i = 0; i < this.size(); ++i) {
-            final ResourceMinMaxAmount slot = this.slots[i];
-            if (slot == null) {
-                continue;
-            }
-            this.addToTag(tag2, i, slot, provider);
+    public void load(final PatternResourceContainerContents contents) {
+        final List<Optional<ResourceMinMaxAmount>> contentsSlots = contents.slots();
+        for (int i = 0; i < this.size() && i < contentsSlots.size(); ++i) {
+            final Optional<ResourceMinMaxAmount> slotContents = contentsSlots.get(i);
+            this.slots[i] = slotContents.orElse(null);
         }
-
-        final ListTag listTag = new ListTag();
-        listTag.add(tag1);
-        listTag.add(tag2);
-        return listTag;
-    }
-
-    private void addToTag(final CompoundTag tag,
-                          final int index,
-                          final ResourceMinMaxAmount slot,
-                          final HolderLookup.Provider provider) {
-        final Tag serialized = ResourceMinMaxAmount.CODEC.encode(
-            slot,
-            provider.createSerializationContext(NbtOps.INSTANCE),
-            new CompoundTag()
-        ).getOrThrow();
-        tag.put("s" + index, serialized);
-    }
-
-    @Override
-    public void fromTag(final ListTag tag, final Provider provider) {
-        ContainerUtil.read(tag.getCompound(0), this, provider);
-
-        final CompoundTag tag2 = tag.getCompound(1);
-        for (int i = 0; i < this.size(); ++i) {
-            final String key = "s" + i;
-            if (!tag2.contains(key)) {
-                this.slots[i] = null;
-                continue;
-            }
-            final CompoundTag item = tag2.getCompound(key);
-            this.fromTag(i, item, provider);
-        }
-    }
-
-    private void fromTag(final int index, final CompoundTag tag, final HolderLookup.Provider provider) {
-        ResourceMinMaxAmount.CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), tag)
-            .resultOrPartial(error ->
-                LOGGER.error("Failed to load resource container slot {} {}: {}", index, tag, error))
-            .ifPresent(resourceAmount -> this.set(index, resourceAmount));
     }
 
     @Nullable

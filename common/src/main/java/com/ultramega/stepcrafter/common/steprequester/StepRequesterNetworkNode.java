@@ -18,9 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
+
 public class StepRequesterNetworkNode extends SimpleNetworkNode {
     private final Actor actor = new NetworkNodeActor(this);
-    private final Map<Integer, TaskId> runningTasks = new HashMap<>();
+    private final Map<Integer, @Nullable TaskId> runningTasks = new HashMap<>();
 
     private StepRequesterBlockEntity blockEntity;
 

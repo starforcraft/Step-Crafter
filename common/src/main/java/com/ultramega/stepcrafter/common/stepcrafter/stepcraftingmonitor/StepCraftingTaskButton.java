@@ -13,16 +13,17 @@ import com.refinedmods.refinedstorage.common.support.widget.TextMarquee;
 
 import java.util.Locale;
 import java.util.function.Consumer;
-import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import org.jspecify.annotations.Nullable;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
@@ -47,7 +48,7 @@ public class StepCraftingTaskButton extends AbstractButton {
         this.text = new TextMarquee(
             rendering.getDisplayName(resource),
             TASK_BUTTON_WIDTH - 16 - 4 - 4 - 4,
-            0xFFFFFF,
+            0xFFFFFFFF,
             true,
             true
         );
@@ -60,11 +61,8 @@ public class StepCraftingTaskButton extends AbstractButton {
     }
 
     @Override
-    protected void renderWidget(final GuiGraphics graphics,
-                                final int mouseX,
-                                final int mouseY,
-                                final float partialTicks) {
-        super.renderWidget(graphics, mouseX, mouseY, partialTicks);
+    protected void extractContents(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        this.extractDefaultSprite(graphics);
         this.renderResourceIcon(graphics);
         final int yOffset = SmallText.isSmall() ? 5 : 3;
         final int textX = this.getX() + 3 + 16 + 3;
@@ -75,11 +73,11 @@ public class StepCraftingTaskButton extends AbstractButton {
             this.stateProvider.getPercentageCompleted(this.task.id()) * 100
         );
         SmallText.render(graphics, Minecraft.getInstance().font, percentageCompleted + "%", textX, textY + ySpacing,
-            0xFFFFFF, true, SmallText.DEFAULT_SCALE);
+            0xFFFFFFFF, true, SmallText.DEFAULT_SCALE);
         this.updateTooltip();
     }
 
-    private void renderResourceIcon(final GuiGraphics graphics) {
+    private void renderResourceIcon(final GuiGraphicsExtractor graphics) {
         final ResourceKey resource = this.task.resource();
         final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass());
         final int resourceX = this.getX() + 3;
@@ -121,7 +119,7 @@ public class StepCraftingTaskButton extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    public void onPress(final InputWithModifiers inputWithModifiers) {
         this.onPress.accept(this.task.id());
     }
 

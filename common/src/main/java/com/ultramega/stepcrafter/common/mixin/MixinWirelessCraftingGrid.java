@@ -5,8 +5,7 @@ import com.ultramega.stepcrafter.common.support.NetworkGetter;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.common.api.support.network.item.NetworkItemContext;
 
-import javax.annotation.Nullable;
-
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

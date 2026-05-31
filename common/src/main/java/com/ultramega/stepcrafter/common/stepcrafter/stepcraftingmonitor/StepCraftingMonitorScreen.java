@@ -15,22 +15,24 @@ import com.refinedmods.refinedstorage.common.support.widget.ScrollbarWidget;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import org.jspecify.annotations.Nullable;
 
+import static com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorScreen.darkenARGB;
 import static com.refinedmods.refinedstorage.common.support.Sprites.ERROR;
 import static com.refinedmods.refinedstorage.common.support.Sprites.ICON_SIZE;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
-import static com.refinedmods.refinedstorage.common.util.MathUtil.darkenARGB;
 import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.createStepCrafterTranslation;
+import static net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED;
 
 public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCraftingMonitorContainerMenu>
     implements StepCraftingMonitorListener {
@@ -47,9 +49,9 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
     private static final int ROW_HEIGHT = 30;
     private static final int ROW_WIDTH = 221;
 
-    private static final ResourceLocation TEXTURE = createIdentifier("textures/gui/autocrafting_monitor.png");
-    private static final ResourceLocation ROW = createIdentifier("autocrafting_monitor/row");
-    private static final ResourceLocation TASKS = createIdentifier("autocrafting_monitor/tasks");
+    private static final Identifier TEXTURE = createIdentifier("textures/gui/autocrafting_monitor.png");
+    private static final Identifier ROW = createIdentifier("autocrafting_monitor/row");
+    private static final Identifier TASKS = createIdentifier("autocrafting_monitor/tasks");
 
     private static final MutableComponent CANCEL = createTranslation("gui", "autocrafting_monitor.cancel");
     private static final MutableComponent CANCEL_ALL = createTranslation("gui", "autocrafting_monitor.cancel_all");
@@ -77,9 +79,7 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
     public StepCraftingMonitorScreen(final AbstractStepCraftingMonitorContainerMenu menu,
                                      final Inventory playerInventory,
                                      final Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = 254;
-        this.imageHeight = 231;
+        super(menu, playerInventory, title, 254, 231);
     }
 
     @Override
@@ -168,20 +168,20 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
     }
 
     @Override
-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(graphics, mouseX, mouseY, partialTicks);
+    public void extractContents(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        super.extractContents(graphics, mouseX, mouseY, partialTicks);
         if (this.taskItemsScrollbar != null) {
-            this.taskItemsScrollbar.render(graphics, mouseX, mouseY, partialTicks);
+            this.taskItemsScrollbar.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         }
         if (this.taskButtonsScrollbar != null) {
-            this.taskButtonsScrollbar.render(graphics, mouseX, mouseY, partialTicks);
+            this.taskButtonsScrollbar.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         }
     }
 
     @Override
-    protected void renderBg(final GuiGraphics graphics, final float delta, final int mouseX, final int mouseY) {
-        super.renderBg(graphics, delta, mouseX, mouseY);
-        graphics.blitSprite(TASKS, this.leftPos - TASKS_WIDTH + 4, this.topPos, TASKS_WIDTH, TASKS_HEIGHT);
+    public void extractBackground(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTicks);
+        graphics.blitSprite(GUI_TEXTURED, TASKS, this.leftPos - TASKS_WIDTH + 4, this.topPos, TASKS_WIDTH, TASKS_HEIGHT);
         final List<StepTaskStatus.Item> items = this.getMenu().getCurrentItems();
         if (items.isEmpty() || this.taskItemsScrollbar == null || !this.getMenu().isActive()) {
             return;
@@ -208,12 +208,12 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
             tasksInnerY + TASKS_INNER_HEIGHT
         );
         for (final StepCraftingTaskButton taskButton : this.taskButtons) {
-            taskButton.render(graphics, mouseX, mouseY, delta);
+            taskButton.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         }
         graphics.disableScissor();
     }
 
-    private void renderRow(final GuiGraphics graphics,
+    private void renderRow(final GuiGraphicsExtractor graphics,
                            final int x,
                            final int y,
                            final int i,
@@ -223,7 +223,7 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
         if (y <= this.topPos + 20 - ROW_HEIGHT || y > this.topPos + 20 + ITEMS_AREA_HEIGHT) {
             return;
         }
-        graphics.blitSprite(ROW, x, y, ROW_WIDTH, ROW_HEIGHT);
+        graphics.blitSprite(GUI_TEXTURED, ROW, x, y, ROW_WIDTH, ROW_HEIGHT);
         for (int column = i * COLUMNS; column < Math.min(i * COLUMNS + COLUMNS, items.size()); ++column) {
             final StepTaskStatus.Item item = items.get(column);
             final int xx = x + (column % COLUMNS) * 74;
@@ -242,7 +242,7 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
         return ITEM_COLOR;
     }
 
-    private void renderItem(final GuiGraphics graphics,
+    private void renderItem(final GuiGraphicsExtractor graphics,
                             final int x,
                             final int y,
                             final StepTaskStatus.Item item,
@@ -273,8 +273,9 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
         this.renderItemText(graphics, item, rendering, xx, yy);
     }
 
-    private static void renderItemErrorIcon(final GuiGraphics graphics, final int x, final int y) {
+    private static void renderItemErrorIcon(final GuiGraphicsExtractor graphics, final int x, final int y) {
         graphics.blitSprite(
+            GUI_TEXTURED,
             ERROR,
             x + 73 - ICON_SIZE - 3,
             y + 29 - ICON_SIZE - 3,
@@ -283,7 +284,7 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
         );
     }
 
-    private void renderItemText(final GuiGraphics graphics,
+    private void renderItemText(final GuiGraphicsExtractor graphics,
                                 final StepTaskStatus.Item item,
                                 final ResourceRendering rendering,
                                 final int x,
@@ -294,7 +295,7 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
         this.renderItemText(graphics, "used", rendering, x, yy, item.used());
     }
 
-    private void renderItemText(final GuiGraphics graphics,
+    private void renderItemText(final GuiGraphicsExtractor graphics,
                                 final String type,
                                 final ResourceRendering rendering,
                                 final int x,
@@ -307,22 +308,22 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
                 .getVisualOrderText(),
             x,
             y,
-            0x404040,
+            0xFF404040,
             false,
             SmallText.DEFAULT_SCALE
         );
     }
 
     @Override
-    public boolean mouseClicked(final double mouseX, final double mouseY, final int clickedButton) {
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
         if (this.taskItemsScrollbar != null
-            && this.taskItemsScrollbar.mouseClicked(mouseX, mouseY, clickedButton)) {
+            && this.taskItemsScrollbar.mouseClicked(event, doubleClick)) {
             return true;
         }
-        if (this.taskButtonsScrollbar != null && this.taskButtonsScrollbar.mouseClicked(mouseX, mouseY, clickedButton)) {
+        if (this.taskButtonsScrollbar != null && this.taskButtonsScrollbar.mouseClicked(event, doubleClick)) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, clickedButton);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
@@ -337,26 +338,26 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
     }
 
     @Override
-    public boolean mouseReleased(final double mx, final double my, final int button) {
-        if (this.taskItemsScrollbar != null && this.taskItemsScrollbar.mouseReleased(mx, my, button)) {
+    public boolean mouseReleased(final MouseButtonEvent event) {
+        if (this.taskItemsScrollbar != null && this.taskItemsScrollbar.mouseReleased(event)) {
             return true;
         }
-        if (this.taskButtonsScrollbar != null && this.taskButtonsScrollbar.mouseReleased(mx, my, button)) {
+        if (this.taskButtonsScrollbar != null && this.taskButtonsScrollbar.mouseReleased(event)) {
             return true;
         }
-        return super.mouseReleased(mx, my, button);
+        return super.mouseReleased(event);
     }
 
     @Override
-    public boolean mouseScrolled(final double x, final double y, final double z, final double delta) {
+    public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY) {
         final boolean didTaskItemsScrollbar = this.taskItemsScrollbar != null
             && this.isHoveringOverItems(x, y)
-            && this.taskItemsScrollbar.mouseScrolled(x, y, z, delta);
+            && this.taskItemsScrollbar.mouseScrolled(x, y, scrollX, scrollY);
         final boolean didTaskButtonsScrollbar = !didTaskItemsScrollbar
             && this.taskButtonsScrollbar != null
             && this.isHoveringOverTaskButtons(x, y)
-            && this.taskButtonsScrollbar.mouseScrolled(x, y, z, delta);
-        return didTaskItemsScrollbar || didTaskButtonsScrollbar || super.mouseScrolled(x, y, z, delta);
+            && this.taskButtonsScrollbar.mouseScrolled(x, y, scrollX, scrollY);
+        return didTaskItemsScrollbar || didTaskButtonsScrollbar || super.mouseScrolled(x, y, scrollX, scrollY);
     }
 
     private boolean isHoveringOverItems(final double x, final double y) {
@@ -378,22 +379,22 @@ public class StepCraftingMonitorScreen extends AbstractBaseScreen<AbstractStepCr
     }
 
     @Override
-    public void renderLabels(final GuiGraphics graphics, final int mouseX, final int mouseY) {
-        graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
+    protected void extractLabels(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
+        graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, -12566464, false);
 
-        graphics.pose().pushPose();
-        graphics.pose().scale(0.5F, 0.5F, 0.5F);
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(0.5F, 0.5F);
 
         final int x = this.imageWidth * 2 - this.font.width(DISCLAIMER) - 8;
         final int y = this.imageHeight * 2 - this.font.lineHeight * 2;
 
-        graphics.drawString(this.font, DISCLAIMER, x, y, 0xFF808080, false);
+        graphics.text(this.font, DISCLAIMER, x, y, 0xFF808080, false);
 
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
     }
 
     @Override
-    protected ResourceLocation getTexture() {
+    protected Identifier getTexture() {
         return TEXTURE;
     }
 

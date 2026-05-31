@@ -5,10 +5,10 @@ import com.ultramega.stepcrafter.common.registry.Blocks;
 import com.refinedmods.refinedstorage.common.api.upgrade.UpgradeDestination;
 
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 public enum UpgradeDestinations implements UpgradeDestination {
     STEP_CRAFTER(ContentNames.STEP_CRAFTER, () -> new ItemStack(Blocks.INSTANCE.getStepCrafter())),

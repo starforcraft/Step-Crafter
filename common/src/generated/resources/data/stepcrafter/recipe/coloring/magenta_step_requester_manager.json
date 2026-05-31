@@ -2,15 +2,10 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "stepcrafter:step_requester_managers"
-    },
-    {
-      "tag": "c:dyes/magenta"
-    }
+    "#stepcrafter:step_requester_managers",
+    "#c:dyes/magenta"
   ],
   "result": {
-    "count": 1,
     "id": "stepcrafter:magenta_step_requester_manager"
   }
 }

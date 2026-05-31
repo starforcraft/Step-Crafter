@@ -39,8 +39,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
@@ -76,8 +76,7 @@ public class ModInitializer extends AbstractModInitializer {
     public ModInitializer(final IEventBus eventBus, final ModContainer modContainer) {
         PlatformProxy.loadPlatform(new PlatformImpl(modContainer));
 
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            eventBus.addListener(ClientModInitializer::onClientSetup);
+        if (FMLEnvironment.getDist() == Dist.CLIENT) {
             eventBus.addListener(ClientModInitializer::onRegisterMenuScreens);
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         }
@@ -111,11 +110,10 @@ public class ModInitializer extends AbstractModInitializer {
         super.registerBlockEntities(
             new ForgeRegistryCallback<>(this.blockEntityTypeRegistry),
             new BlockEntityTypeFactory() {
-                @SuppressWarnings("DataFlowIssue") // data type can be null
                 @Override
                 public <T extends BlockEntity> BlockEntityType<T> create(final BlockEntityProvider<T> factory,
                                                                          final Block... allowedBlocks) {
-                    return new BlockEntityType<>(factory::create, new HashSet<>(Arrays.asList(allowedBlocks)), null);
+                    return new BlockEntityType<>(factory::create, new HashSet<>(Arrays.asList(allowedBlocks)));
                 }
             }
         );
@@ -140,6 +138,8 @@ public class ModInitializer extends AbstractModInitializer {
         this.registerNetworkNodeContainerProvider(event, BlockEntities.INSTANCE.getStepCrafter());
         this.registerNetworkNodeContainerProvider(event, BlockEntities.INSTANCE.getStepRequester());
         this.registerNetworkNodeContainerProvider(event, BlockEntities.INSTANCE.getStepCrafterManager());
+        this.registerNetworkNodeContainerProvider(event, BlockEntities.INSTANCE.getStepCraftingMonitor());
+        this.registerNetworkNodeContainerProvider(event, BlockEntities.INSTANCE.getStepRequesterManager());
     }
 
     private void registerNetworkNodeContainerProvider(final RegisterCapabilitiesEvent event,
@@ -264,7 +264,7 @@ public class ModInitializer extends AbstractModInitializer {
 
     private record ForgeRegistryCallback<T>(DeferredRegister<T> registry) implements RegistryCallback<T> {
         @Override
-        public <R extends T> Supplier<R> register(final ResourceLocation id, final Supplier<R> value) {
+        public <R extends T> Supplier<R> register(final Identifier id, final Supplier<R> value) {
             return this.registry.register(id.getPath(), value);
         }
     }
