@@ -4,16 +4,20 @@ import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceS
 
 import com.refinedmods.refinedstorage.common.support.AbstractBaseContainerMenu;
 
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 public class ResourceConfigurationContainerMenu extends AbstractBaseContainerMenu {
     private final PatternResourceSlot resourceSlot;
 
-    public ResourceConfigurationContainerMenu(final PatternResourceSlot slot, final int x, final int y) {
+    public ResourceConfigurationContainerMenu(final PatternResourceSlot slot, final Inventory playerInventory, final int x, final int y) {
         super(null, 0);
         this.resourceSlot = slot.forAmountScreen(x, y);
         this.addSlot(this.resourceSlot);
+
+        // Keep the standard 36 player inventory slots in the menu for compatibility with mods like the Inventory Sorter mod
+        this.addPlayerInventory(playerInventory, -10_000, -10_000);
     }
 
     @Override

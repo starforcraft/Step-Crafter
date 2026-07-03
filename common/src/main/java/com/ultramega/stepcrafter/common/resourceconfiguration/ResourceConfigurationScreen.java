@@ -64,7 +64,7 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
     private final double maxAmount;
 
     public ResourceConfigurationScreen(final Screen parent, final Inventory playerInventory, final PatternResourceSlot resourceSlot, final boolean showBatchSize) {
-        super(new ResourceConfigurationContainerMenu(resourceSlot, 120 + (showBatchSize ? 25 : 0), 42), playerInventory, TITLE);
+        super(new ResourceConfigurationContainerMenu(resourceSlot, playerInventory, 120 + (showBatchSize ? 25 : 0), 42), playerInventory, TITLE);
         this.parent = parent;
         this.resourceSlot = resourceSlot;
         this.amountOperations = DoubleAmountOperations.INSTANCE;
