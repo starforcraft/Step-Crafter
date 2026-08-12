@@ -19,8 +19,11 @@ import java.util.Map;
 import java.util.Optional;
 
 public class StepRequesterNetworkNode extends SimpleNetworkNode {
+    private static final int FAILED_TASK_TIMEOUT_TICKS = 20;
+
     private final Actor actor = new NetworkNodeActor(this);
     private final Map<Integer, TaskId> runningTasks = new HashMap<>();
+    private final Map<Integer, Integer> failedTaskTimeouts = new HashMap<>();
 
     private StepRequesterBlockEntity blockEntity;
 
@@ -36,12 +39,16 @@ public class StepRequesterNetworkNode extends SimpleNetworkNode {
             return;
         }
 
+        this.failedTaskTimeouts.replaceAll((index, ticks) -> ticks - 1);
+        this.failedTaskTimeouts.values().removeIf(ticks -> ticks <= 0);
+
         final AutocraftingNetworkComponent autocraftingComponent = this.network.getComponent(AutocraftingNetworkComponent.class);
         final StorageNetworkComponent storageComponent = this.network.getComponent(StorageNetworkComponent.class);
         final PatternResourceContainerImpl filterContainer = this.blockEntity.getFilterContainer();
         for (int i = 0; i < filterContainer.getContainerSize(); i++) {
             final ResourceMinMaxAmount resource = filterContainer.get(i);
             if (resource == null || resource.batchSize() == 0) {
+                this.failedTaskTimeouts.remove(i);
                 continue;
             }
 
@@ -52,6 +59,9 @@ public class StepRequesterNetworkNode extends SimpleNetworkNode {
                 }
                 if (resource.status() == ResourceStatus.CRAFTING && stored >= resource.maxAmount()) {
                     filterContainer.set(i, resource.toBuilder().status(ResourceStatus.FINISHED).build());
+                    break;
+                }
+                if (this.failedTaskTimeouts.containsKey(i)) {
                     break;
                 }
 
@@ -66,15 +76,17 @@ public class StepRequesterNetworkNode extends SimpleNetworkNode {
                     final Optional<TaskId> task = autocraftingComponent.startTask(resource.resource(), batchSize, this.actor, false, new TimeoutableCancellationToken());
                     this.runningTasks.put(i, task.orElse(null));
                     if (task.isEmpty()) {
+                        this.failedTaskTimeouts.put(i, FAILED_TASK_TIMEOUT_TICKS);
                         filterContainer.set(i, resource.toBuilder().status(ResourceStatus.NOT_ENOUGH_INGREDIENTS).build());
                         break;
                     } else {
+                        this.failedTaskTimeouts.remove(i);
                         if (resource.status() != ResourceStatus.CRAFTING) {
                             filterContainer.set(i, resource.toBuilder().status(ResourceStatus.CRAFTING).build());
                         }
                     }
                 } catch (final IllegalStateException ignored) {
-                    // TODO: add cooldown if task couldn't be started
+                    this.failedTaskTimeouts.put(i, FAILED_TASK_TIMEOUT_TICKS);
                     if (resource.status() == ResourceStatus.CRAFTING) {
                         filterContainer.set(i, resource.toBuilder().status(ResourceStatus.FINISHED).build());
                     }
