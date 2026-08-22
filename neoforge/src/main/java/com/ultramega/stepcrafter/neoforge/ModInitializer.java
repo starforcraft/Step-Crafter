@@ -2,6 +2,7 @@ package com.ultramega.stepcrafter.neoforge;
 
 import com.ultramega.stepcrafter.common.AbstractModInitializer;
 import com.ultramega.stepcrafter.common.PlatformProxy;
+import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceDefaultAmountsPacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceFilterSlotChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotAmountChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotChangePacket;
@@ -192,6 +193,11 @@ public class ModInitializer extends AbstractModInitializer {
             StepCraftingMonitorCancelAllPacket.PACKET_TYPE,
             StepCraftingMonitorCancelAllPacket.STREAM_CODEC,
             wrapHandler((packet, ctx) -> StepCraftingMonitorCancelAllPacket.handle(ctx))
+        );
+        registrar.playToServer(
+            PatternResourceDefaultAmountsPacket.PACKET_TYPE,
+            PatternResourceDefaultAmountsPacket.STREAM_CODEC,
+            wrapHandler(PatternResourceDefaultAmountsPacket::handle)
         );
 
         registrar.playToClient(

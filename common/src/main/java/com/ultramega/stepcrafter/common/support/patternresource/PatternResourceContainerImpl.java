@@ -23,6 +23,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
+import static com.ultramega.stepcrafter.common.DefaultConfig.DEFAULT_BATCH_SIZE;
+import static com.ultramega.stepcrafter.common.DefaultConfig.DEFAULT_MAX_AMOUNT;
+import static com.ultramega.stepcrafter.common.DefaultConfig.DEFAULT_MIN_AMOUNT;
+
 public class PatternResourceContainerImpl extends PatternInventory {
     @Nullable
     private final ResourceMinMaxAmount[] slots;
@@ -32,6 +36,11 @@ public class PatternResourceContainerImpl extends PatternInventory {
     private final Set<ResourceFactory> alternativeResourceFactories;
     private final boolean isFilter;
     private final Supplier<Integer> slotUpgradesCount;
+
+    private double defaultMinAmount = DEFAULT_MIN_AMOUNT;
+    private double defaultMaxAmount = DEFAULT_MAX_AMOUNT;
+    private double defaultBatchSize = DEFAULT_BATCH_SIZE;
+    private boolean hasDefaultAmounts;
 
     @Nullable
     private Consumer<Integer> changedListener;
@@ -90,8 +99,23 @@ public class PatternResourceContainerImpl extends PatternInventory {
         this.slots[index] = null;
     }
 
+    public void setDefaultAmounts(final double minAmount, final double maxAmount, final double batchSize) {
+        this.defaultMinAmount = minAmount;
+        this.defaultMaxAmount = maxAmount;
+        this.defaultBatchSize = batchSize;
+        this.hasDefaultAmounts = true;
+    }
+
     public void setNewResource(final int index, final ResourceKey resourceKey) {
-        this.set(index, new ResourceMinMaxAmount(resourceKey, 0L, 0L, 1L, ResourceStatus.FINISHED));
+        if (this.hasDefaultAmounts && resourceKey instanceof PlatformResourceKey resource) {
+            final long minAmount = resource.getResourceType().normalizeAmount(this.defaultMinAmount);
+            final long maxAmount = resource.getResourceType().normalizeAmount(this.defaultMaxAmount);
+            final long batchSize = resource.getResourceType().normalizeAmount(this.defaultBatchSize);
+
+            this.set(index, new ResourceMinMaxAmount(resourceKey, minAmount, maxAmount, batchSize, ResourceStatus.FINISHED));
+        } else {
+            this.set(index, new ResourceMinMaxAmount(resourceKey, 0L, 0L, 1L, ResourceStatus.FINISHED));
+        }
     }
 
     public void set(final int index, final ResourceMinMaxAmount resourceAmount) {

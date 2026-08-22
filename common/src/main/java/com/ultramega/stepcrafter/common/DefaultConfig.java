@@ -9,6 +9,10 @@ public final class DefaultConfig {
     public static final long STEP_REQUESTER_MANAGER_ENERGY_USAGE = 16;
     public static final long SLOT_UPGRADE_ENERGY_USAGE = 4;
 
+    public static final double DEFAULT_MIN_AMOUNT = 0D;
+    public static final double DEFAULT_MAX_AMOUNT = 0D;
+    public static final double DEFAULT_BATCH_SIZE = 1D;
+
     private DefaultConfig() {
     }
 }

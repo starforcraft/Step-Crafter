@@ -42,6 +42,12 @@ public abstract class AbstractPatternResourceContainerMenu extends AbstractBaseC
         return this.patternResourceSlots;
     }
 
+    public void setDefaultResourceAmounts(final double minAmount, final double maxAmount, final double batchSize) {
+        for (final PatternResourceSlot slot : this.patternResourceSlots) {
+            slot.setDefaultAmounts(minAmount, maxAmount, batchSize);
+        }
+    }
+
     public void handlePatternResourceSlotUpdate(final int slotIndex, @Nullable final ResourceMinMaxAmount resourceAmount) {
         this.getPatternResourceSlot(slotIndex).ifPresent(slot -> slot.change(resourceAmount));
     }

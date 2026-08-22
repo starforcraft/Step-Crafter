@@ -1,5 +1,6 @@
 package com.ultramega.stepcrafter.fabric;
 
+import com.ultramega.stepcrafter.common.ClientConfig;
 import com.ultramega.stepcrafter.common.DefaultConfig;
 import com.ultramega.stepcrafter.common.stepmanager.StepManagerSearchMode;
 
@@ -16,7 +17,7 @@ import static com.ultramega.stepcrafter.common.StepCrafterIdentifierUtil.MOD_ID;
 
 @Config(name = MOD_ID)
 @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal", "CanBeFinal"})
-public class ConfigImpl implements ConfigData, com.ultramega.stepcrafter.common.Config {
+public class ConfigImpl implements ConfigData, com.ultramega.stepcrafter.common.Config, ClientConfig {
     @ConfigEntry.Gui.CollapsibleObject
     private SimpleEnergySpeedUsageEntryImpl stepCrafter = new SimpleEnergySpeedUsageEntryImpl(DefaultConfig.STEP_CRAFTER_ENERGY_USAGE, DefaultConfig.STEP_CRAFTER_SPEED_MULTIPLIER);
     @ConfigEntry.Gui.CollapsibleObject
@@ -29,6 +30,9 @@ public class ConfigImpl implements ConfigData, com.ultramega.stepcrafter.common.
     private StepManagerEntryImpl stepRequesterManager = new StepManagerEntryImpl(DefaultConfig.STEP_REQUESTER_MANAGER_ENERGY_USAGE);
     @ConfigEntry.Gui.CollapsibleObject
     private SimpleEnergyUsageEntryImpl slotUpgrade = new SimpleEnergyUsageEntryImpl(DefaultConfig.SLOT_UPGRADE_ENERGY_USAGE);
+
+    @ConfigEntry.Gui.CollapsibleObject
+    private ResourceConfigurationDefaults resourceConfigurationDefaults = new ResourceConfigurationDefaults();
 
     public static ConfigImpl get() {
         return AutoConfig.getConfigHolder(ConfigImpl.class).getConfig();
@@ -62,6 +66,30 @@ public class ConfigImpl implements ConfigData, com.ultramega.stepcrafter.common.
     @Override
     public SimpleEnergyUsageEntry getSlotUpgrade() {
         return this.slotUpgrade;
+    }
+
+    @Override
+    public double getDefaultMinAmount() {
+        return this.resourceConfigurationDefaults.defaultMinAmount;
+    }
+
+    @Override
+    public double getDefaultMaxAmount() {
+        return this.resourceConfigurationDefaults.defaultMaxAmount;
+    }
+
+    @Override
+    public double getDefaultBatchSize() {
+        return this.resourceConfigurationDefaults.defaultBatchSize;
+    }
+
+    private static class ResourceConfigurationDefaults {
+        private double defaultMinAmount = DefaultConfig.DEFAULT_MIN_AMOUNT;
+        private double defaultMaxAmount = DefaultConfig.DEFAULT_MAX_AMOUNT;
+        private double defaultBatchSize = DefaultConfig.DEFAULT_BATCH_SIZE;
+
+        ResourceConfigurationDefaults() {
+        }
     }
 
     private static class StepManagerEntryImpl implements StepManagerEntry {

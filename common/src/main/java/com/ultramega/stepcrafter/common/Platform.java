@@ -9,6 +9,8 @@ public interface Platform {
 
     Config getConfig();
 
+    ClientConfig getClientConfig();
+
     @Nullable
     ItemStackTemplate getCraftingRemainder(ItemStack itemStack);
 }

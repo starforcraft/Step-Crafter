@@ -22,6 +22,11 @@ public class PlatformProxy implements Platform {
     }
 
     @Override
+    public ClientConfig getClientConfig() {
+        return this.ensureLoaded().getClientConfig();
+    }
+
+    @Override
     @Nullable
     public ItemStackTemplate getCraftingRemainder(final ItemStack itemStack) {
         return this.ensureLoaded().getCraftingRemainder(itemStack);

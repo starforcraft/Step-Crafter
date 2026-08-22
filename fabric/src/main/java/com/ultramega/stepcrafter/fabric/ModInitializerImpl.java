@@ -2,6 +2,7 @@ package com.ultramega.stepcrafter.fabric;
 
 import com.ultramega.stepcrafter.common.AbstractModInitializer;
 import com.ultramega.stepcrafter.common.PlatformProxy;
+import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceDefaultAmountsPacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceFilterSlotChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotAmountChangePacket;
 import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceSlotChangePacket;
@@ -128,6 +129,7 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
         PayloadTypeRegistry.serverboundPlay().register(StepCraftingRequestPacket.PACKET_TYPE, StepCraftingRequestPacket.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(StepCraftingMonitorCancelPacket.PACKET_TYPE, StepCraftingMonitorCancelPacket.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(StepCraftingMonitorCancelAllPacket.PACKET_TYPE, StepCraftingMonitorCancelAllPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(PatternResourceDefaultAmountsPacket.PACKET_TYPE, PatternResourceDefaultAmountsPacket.STREAM_CODEC);
 
         PayloadTypeRegistry.clientboundPlay().register(PatternResourceSlotUpdatePacket.PACKET_TYPE, PatternResourceSlotUpdatePacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(SetMaintainableResourcesPacket.PACKET_TYPE, SetMaintainableResourcesPacket.STREAM_CODEC);
@@ -171,6 +173,10 @@ public class ModInitializerImpl extends AbstractModInitializer implements Refine
         ServerPlayNetworking.registerGlobalReceiver(
             StepCraftingMonitorCancelAllPacket.PACKET_TYPE,
             wrapHandler((packet, ctx) -> StepCraftingMonitorCancelAllPacket.handle(ctx))
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+            PatternResourceDefaultAmountsPacket.PACKET_TYPE,
+            wrapHandler(PatternResourceDefaultAmountsPacket::handle)
         );
     }
 
