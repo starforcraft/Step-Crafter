@@ -71,11 +71,11 @@ public class ResourceConfigurationScreen extends AbstractAdvancedBaseScreen<Reso
 
         final PlatformResourceKey resource = resourceSlot.getResource();
         this.minInitialAmount = resource != null
-                ? resource.getResourceType().getDisplayAmount(resourceSlot.getMinAmount()) : resourceSlot.getMinAmount();
+            ? resource.getResourceType().getDisplayAmount(resourceSlot.getMinAmount()) : resourceSlot.getMinAmount();
         this.maxInitialAmount = resource != null
-                ? resource.getResourceType().getDisplayAmount(resourceSlot.getMaxAmount()) : resourceSlot.getMaxAmount();
+            ? resource.getResourceType().getDisplayAmount(resourceSlot.getMaxAmount()) : resourceSlot.getMaxAmount();
         this.batchSizeInitialAmount = resource != null
-                ? resource.getResourceType().getDisplayAmount(resourceSlot.getBatchSize()) : resourceSlot.getBatchSize();
+            ? resource.getResourceType().getDisplayAmount(resourceSlot.getBatchSize()) : resourceSlot.getBatchSize();
         this.showBatchSize = showBatchSize;
         this.minAmount = resource != null ? resource.getResourceType().getDisplayAmount(0) : 0;
         this.maxAmount = Double.MAX_VALUE;

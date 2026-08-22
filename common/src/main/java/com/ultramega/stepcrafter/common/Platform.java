@@ -7,5 +7,7 @@ public interface Platform {
 
     Config getConfig();
 
+    ClientConfig getClientConfig();
+
     ItemStack getCraftingRemainingItem(ItemStack itemStack);
 }

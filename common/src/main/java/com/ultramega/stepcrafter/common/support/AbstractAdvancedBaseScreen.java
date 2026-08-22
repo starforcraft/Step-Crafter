@@ -1,10 +1,12 @@
 package com.ultramega.stepcrafter.common.support;
 
+import com.ultramega.stepcrafter.common.ClientConfig;
+import com.ultramega.stepcrafter.common.Platform;
+import com.ultramega.stepcrafter.common.packet.c2s.PatternResourceDefaultAmountsPacket;
 import com.ultramega.stepcrafter.common.resourceconfiguration.ResourceConfigurationScreen;
 import com.ultramega.stepcrafter.common.support.patternresource.PatternResourceSlot;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceFactory;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
@@ -80,6 +82,22 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
         this.playerInventory = playerInventory;
         this.imageWidth = 228;
         this.determineStuff();
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        if (!(this.getMenu() instanceof AbstractPatternResourceContainerMenu containerMenu)) {
+            return;
+        }
+
+        final ClientConfig clientConfig = Platform.INSTANCE.getClientConfig();
+        final double minAmount = clientConfig.getDefaultMinAmount();
+        final double maxAmount = clientConfig.getDefaultMaxAmount();
+        final double batchSize = clientConfig.getDefaultBatchSize();
+
+        containerMenu.setDefaultResourceAmounts(minAmount, maxAmount, batchSize);
+        com.refinedmods.refinedstorage.common.Platform.INSTANCE.sendPacketToServer(new PatternResourceDefaultAmountsPacket(minAmount, maxAmount, batchSize));
     }
 
     @Override
@@ -179,7 +197,7 @@ public abstract class AbstractAdvancedBaseScreen<T extends AbstractContainerMenu
             }
 
             if (!tooltip.isEmpty()) {
-                Platform.INSTANCE.renderTooltip(graphics, tooltip, x, y);
+                com.refinedmods.refinedstorage.common.Platform.INSTANCE.renderTooltip(graphics, tooltip, x, y);
                 return;
             }
         }

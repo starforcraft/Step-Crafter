@@ -111,6 +111,10 @@ public class PatternResourceSlot extends ValidatedSlot {
         return this.container.getResource(this.getContainerSlot());
     }
 
+    public void setDefaultAmounts(final double minAmount, final double maxAmount, final double batchSize) {
+        this.container.setDefaultAmounts(minAmount, maxAmount, batchSize);
+    }
+
     public long getMinAmount() {
         return this.container.getMinAmount(this.getContainerSlot());
     }

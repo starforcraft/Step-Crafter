@@ -70,5 +70,12 @@
   "text.autoconfig.stepcrafter.option.stepRequesterManager.viewType": "View type",
   "text.autoconfig.stepcrafter.option.stepRequesterManager.viewType.tooltip": "The view type.",
   "text.autoconfig.stepcrafter.option.slotUpgrade.energyUsage": "Energy usage",
-  "text.autoconfig.stepcrafter.option.slotUpgrade.energyUsage.tooltip": "The energy used by the Slot Upgrade."
+  "text.autoconfig.stepcrafter.option.slotUpgrade.energyUsage.tooltip": "The energy used by the Slot Upgrade.",
+  "text.autoconfig.stepcrafter.option.resourceConfigurationDefaults": "Resource configuration defaults",
+  "text.autoconfig.stepcrafter.option.resourceConfigurationDefaults.defaultMinAmount": "Default Min",
+  "text.autoconfig.stepcrafter.option.resourceConfigurationDefaults.defaultMinAmount.tooltip": "Default minimum amount for newly configured resources.",
+  "text.autoconfig.stepcrafter.option.resourceConfigurationDefaults.defaultMaxAmount": "Default Max",
+  "text.autoconfig.stepcrafter.option.resourceConfigurationDefaults.defaultMaxAmount.tooltip": "Default maximum amount for newly configured resources.",
+  "text.autoconfig.stepcrafter.option.resourceConfigurationDefaults.defaultBatchSize": "Default Batch Size",
+  "text.autoconfig.stepcrafter.option.resourceConfigurationDefaults.defaultBatchSize.tooltip": "Default batch size for newly configured resources."
 }
