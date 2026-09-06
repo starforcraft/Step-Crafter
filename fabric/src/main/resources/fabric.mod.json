@@ -21,11 +21,14 @@
     "client": [
       "com.ultramega.stepcrafter.fabric.ClientModInitializerImpl"
     ],
+    "modmenu": [
+      "com.ultramega.stepcrafter.fabric.ModMenuApiImpl"
+    ],
     "refinedstorage_plugin": [
       "com.ultramega.stepcrafter.fabric.ModInitializerImpl"
     ],
-    "modmenu": [
-      "com.ultramega.stepcrafter.fabric.ModMenuApiImpl"
+    "jei_mod_plugin": [
+      "com.ultramega.stepcrafter.common.compat.jei.JeiModPlugin"
     ]
   },
   "custom": {
