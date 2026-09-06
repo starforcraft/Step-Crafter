@@ -18,15 +18,13 @@ import com.refinedmods.refinedstorage.common.support.widget.TextMarquee;
 
 import java.util.List;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -110,26 +108,22 @@ public abstract class MixinAbstractGridScreen<T extends AbstractGridContainerMen
         }
     }
 
-    @ModifyExpressionValue(method = "mouseReleased(Lnet/minecraft/client/input/MouseButtonEvent;"
-        + "Lcom/refinedmods/refinedstorage/common/api/grid/view/GridResource;Lnet/minecraft/world/item/ItemStack;)Z",
-        at = @At(value = "INVOKE", target = "Lcom/refinedmods/refinedstorage/common/api/grid/view/GridResource;"
-            + "isAutocraftable(Lcom/refinedmods/refinedstorage/api/resource/repository/ResourceRepository;)Z"), remap = false)
-    public boolean mouseReleased(final boolean original) {
-        final Minecraft mc = Minecraft.getInstance();
-        final ItemStack carriedStack = this.getMenu().getCarried();
-        final GridResource resource = this.getCurrentGridResource();
-        if (resource != null
-            && ((resource.canExtract(carriedStack, this.getMenu().getRepository()) && !mc.hasControlDown()) || mc.hasAltDown())
-            && !this.stepcrafter$getMaintainingResources(this.getMenu().getRepository(), resource).isEmpty()
-            && this.stepcrafter$tryStartRequesting(resource)) {
-            return false;
+    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
+    private void stepcrafter$mouseClicked(final MouseButtonEvent e, final boolean doubleClick, final CallbackInfoReturnable<Boolean> cir) {
+        if (!Minecraft.getInstance().hasAltDown()) {
+            return;
         }
-        return original && !mc.hasAltDown(); // This is to not accidentally add another way to open the autocrafting preview screen
-    }
 
-    @ModifyReturnValue(method = "canExtract", at = @At("RETURN"))
-    private boolean canExtract(final boolean original) {
-        return original && !Minecraft.getInstance().hasAltDown();
+        final GridResource resource = this.getCurrentGridResource();
+        if (resource == null) {
+            return;
+        }
+
+        if (!this.stepcrafter$getMaintainingResources(this.getMenu().getRepository(), resource).isEmpty()) {
+            this.stepcrafter$tryStartRequesting(resource);
+        }
+
+        cir.setReturnValue(true);
     }
 
     @Inject(method = "getAmountText", at = @At("HEAD"), remap = false, cancellable = true)
