@@ -217,11 +217,12 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
         input.read(TAG_TASKS, StepTaskSnapshotCodecs.LIST_CODEC)
             .ifPresent(snapshots ->
                 snapshots.forEach(snapshot -> this.mainNetworkNode.addTask(new StepTaskImpl(snapshot))));
+        this.id = new ExternalPatternSinkId(input.read(TAG_ID, UUIDUtil.CODEC).orElseGet(UUID::randomUUID));
+        super.loadAdditional(input);
+        // Item placement loads data after setLevel. Refresh only after all saved pattern settings and the remaining configuration have been restored
         if (this.level != null && !this.level.isClientSide()) {
             this.onPatternChanged();
         }
-        this.id = new ExternalPatternSinkId(input.read(TAG_ID, UUIDUtil.CODEC).orElseGet(UUID::randomUUID));
-        super.loadAdditional(input);
     }
 
     @Override
