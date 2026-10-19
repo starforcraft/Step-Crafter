@@ -246,6 +246,8 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
             }
         }
         super.loadAdditional(tag, provider);
+        // Item placement loads NBT after setLevel() therefore we need to restore the batchSize etc. here
+        this.refreshPatterns();
     }
 
     @Override
@@ -317,7 +319,11 @@ public class StepCrafterBlockEntity extends AbstractEditableNameBlockEntity<Step
     @Override
     public void setLevel(final Level level) {
         super.setLevel(level);
-        if (level.isClientSide()) {
+        this.refreshPatterns();
+    }
+
+    private void refreshPatterns() {
+        if (this.level == null || this.level.isClientSide()) {
             return;
         }
         for (int i = 0; i < this.patternResourceContainer.getContainerSize(); ++i) {
